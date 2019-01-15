@@ -68,6 +68,7 @@ $config = Array(
 Note select can also be set to false to prevent selecting of records (eg a monitoring end point where the systems should only be able to create new records)
 
 Using the API to fetch Database
+```HTTP
 GET http://<server>/<project>/api.php/<tablename> <== Returns all  records in table
 GET http://<server>/<project>/api.php/<tablename>/<id> <== Returns single record on ID (note use of Key to define ID field in the config)
 GET http://<server>/<project>/api.php/<tablename>?offet=<number>&limit=<number> <== Returns records in table starting from Offset and returning Limit rows
@@ -77,7 +78,7 @@ POST http://<server>/<project>/api.php/<tablename> <== creates new record - note
 PUT http://<server>/<project>/api.php/<tablename>/<id> <== creates new record - note fields to be included in formdata - note the call must use x-www-form-urlencoded
 
 DELETE http://<server>/<project>/api.php/<tablename>/<id> <== Deletes record based on id
-
+```
  
 
 
