@@ -1,0 +1,205 @@
+{
+	"info": {
+		"_postman_id": "0d1c0b53-364c-405a-925d-fe537a8dbf60",
+		"name": "GAPI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "GetMessagebyID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost/gapi/api.php/chats/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"gapi",
+						"api.php",
+						"chats",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetMessages",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost/gapi/api.php/chats/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"gapi",
+						"api.php",
+						"chats",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "MessageCreate",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "chatid",
+							"value": "3",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "username",
+							"value": "William",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "message",
+							"value": "Create by GAPI",
+							"description": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost/gapi/api.php/messages/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"gapi",
+						"api.php",
+						"messages",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "MessageUpdate",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "message\n",
+							"value": "Updated by GAPI - 2",
+							"description": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost/gapi/api.php/messages/4",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"gapi",
+						"api.php",
+						"messages",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "MessageDelete",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "chatid",
+							"value": "3",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "username",
+							"value": "William",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "message",
+							"value": "Create by GAPI",
+							"description": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost/gapi/api.php/messages/8",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"gapi",
+						"api.php",
+						"messages",
+						"8"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetMessagesPaginatin",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost/gapi/api.php/messages/?offset=3&limit=2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"gapi",
+						"api.php",
+						"messages",
+						""
+					],
+					"query": [
+						{
+							"key": "offset",
+							"value": "3"
+						},
+						{
+							"key": "limit",
+							"value": "2"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

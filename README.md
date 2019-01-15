@@ -1,6 +1,12 @@
 # gapi
 Generic API - PHP
 
+# Concept
+
+Many systems are built with an API backend. Building an API can be a lot of work so this project is built to make it a lot quicker and easier to build a RESTful API against a mySQL database. The project allows the configuration of the api to control which tables and which fields can be accessed through the API.
+
+A RESTful API can also manage business logic. Simple business logic can added through various callbacks (not yet implemented)
+
 # Idea
 
 1. Create a standard REST API that can connect to any table in the database (Done)
@@ -30,6 +36,7 @@ Copy the api.php to your server directory. Open the file and set the Database Co
 
 Moldify the Config structure with the details of your tables
 
+```PHP
 $config = Array(
     "messages" => Array(
 					"key" => "id",  <=== Define the key field in the database
@@ -54,7 +61,7 @@ $config = Array(
 					"create" => false
 	)
 );
-
+```
 Note select can also be set to false to prevent selecting of records (eg a monitoring end point where the systems should only be able to create new records)
 
 
