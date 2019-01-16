@@ -42,7 +42,7 @@ Moldify the Config structure with the details of your tables
 ```PHP
 $config = Array(
     "messages" => Array(
-					"key" => "id",  <=== Define the key field in the database
+					"key" => "id",  <=== Define the key field for the table in the database
 					"select" => Array("chatid","username","message","createddate"), <=== Limit which fields acan be selected
 					"update" => Array("message"), <=== Limit which fields can be updated
 					"delete" => true,  <=== Allow deletions
@@ -56,7 +56,7 @@ $config = Array(
 					"create" => false  <=== Prevent API from creating records
 				),
 	"chats" => Array(
-					"tablename" => "chat",   <=== Note renaming of table - API converts incoming chats to the correct table name chat
+					"tablename" => "chat",   <=== Note renaming of table - API converts incoming 'chats' to the correct table name chat
 					"key" => "id",
 					"select" => Array("id","name"),
 					"update" => false, <=== Prevent API from updating records
