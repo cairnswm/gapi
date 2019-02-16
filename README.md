@@ -1,5 +1,5 @@
 
- # gapi
+# gapi
 Generic API - PHP
 
 # Concept
@@ -37,7 +37,7 @@ Copy the api.php to your server directory. Open the file and set the Database Co
 
 # Usage
 
-Moldify the Config structure with the details of your tables
+Modify the Config structure with the details of your tables
 
 ```PHP
 $config = Array(

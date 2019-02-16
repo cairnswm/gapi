@@ -1,7 +1,10 @@
 <?php
+// Only Run needs to be called to do all REST calls
+// Currently supported methods are GET(Select), POST(insert), PUT(update), DELETE(Delete)
 function Run($config, $mysqli = null)
 {
 	$info = Array();
+	
 	// get the HTTP method, path and body of the request
 	$method = $_SERVER['REQUEST_METHOD'];
 	$input = getParameters($method);
@@ -16,16 +19,16 @@ function Run($config, $mysqli = null)
 	 	
 	mysqli_set_charset($link,'utf8');
 	 
+	// Get URL Parameters .../[Table]/[key]
 	$table = getTable($config, $request);
 	if (count($request) > 1) { 	$key = $request[1]; }
+	// Place values into structure that can be passed to child functions
 	$info["table"] = $table;
 	$info["key"] = $key;
 	$info["method"] = $method;
 	$info["input"] = $input;
-
-	
 	 
-	// create SQL based on HTTP method
+	// Called method functionality
 	switch ($method) {
 	  case 'GET':
 		echo returnGET($config, $link, $info); break;
@@ -41,31 +44,9 @@ function Run($config, $mysqli = null)
 	mysqli_close($link);
 }
 
-function ExecSQL($link,$sql)
-{
-	$result = mysqli_query($link,$sql);
-	 
-	// die if SQL statement failed
-	if (!$result) {
-	  http_response_code(404);
-	  die('Error: '.mysqli_error($link));
-	}
-	return $result;
-}
-
-function getTablename($config,$table)
-{
-	if (isset($config[$table]["tablename"]))
-	{ return $config[$table]["tablename"]; }
-    return $table;
-}
-function getTableKey($config,$table)
-{
-	if (isset($config[$table]["key"]))
-	{ return $config[$table]["key"]; }
-    return "id";
-}
-
+// Result for GET method
+// Includes by ID and All select
+// Pagination
 function returnGET($config, $mysqli, $info)
 {
 	if ($config[$info["table"]]["select"] == false)
@@ -151,7 +132,35 @@ function returnDELETE($config, $mysqli, $info)
 	return mysqli_affected_rows($mysqli);
 }
 
- 
+function ExecSQL($link,$sql)
+{
+	$result = mysqli_query($link,$sql);
+	 
+	// die if SQL statement failed
+	if (!$result) {
+	  http_response_code(404);
+	  die('Error: '.mysqli_error($link));
+	}
+	return $result;
+}
+
+// Get tablename from config if defined
+// Allows api name to be different from tablename
+function getTablename($config,$table)
+{
+	if (isset($config[$table]["tablename"]))
+	{ return $config[$table]["tablename"]; }
+    return $table;
+}
+// Default key is "id" unless defined differently in config
+function getTableKey($config,$table)
+{
+	if (isset($config[$table]["key"]))
+	{ return $config[$table]["key"]; }
+    return "id";
+}
+
+// Load POST/PUT parameters into common structure 
 function getParameters($method)
 {
 	// PUT variables set in php://input - note the Content-Type must be correct (x-www-form-urlencoded)
@@ -169,6 +178,10 @@ function getParameters($method)
 	return $input;
 }
 
+// Change incoming variables into a Set statement for mysql
+// Field = "Value"
+// repeated.
+// NOTE insert format using set values https://dev.mysql.com/doc/refman/5.6/en/insert.html
 function getSetValues($config, $mysqli, $info)
 {
 	$input = $info["input"];
@@ -208,6 +221,8 @@ function getSetValues($config, $mysqli, $info)
 	return $set;
 }
 
+// Read [table] parameter from urldecode
+// .../api.php/[table]/...
 function getTable($config, $request)
 {
 	// retrieve the table and key from the path
