@@ -1,5 +1,5 @@
-
 # gapi
+
 Generic API - PHP
 
 // Based on https://www.leaseweb.com/labs/2015/10/creating-a-simple-rest-api-in-php/
@@ -14,7 +14,7 @@ A RESTful API can also manage business logic. Simple business logic can added th
 
 1. Create a standard REST API that can connect to any table in the database (Done)
 2. Make the API Configutrable so through configuration the list of tables can be set, and the fields that can be seen, updated, deleted (Done)
-3. Add Call backs for Pre/POST functionality (Allows additional security) 
+3. Add Call backs for Pre/POST functionality (Allows additional security)
 4. Auto Document the API with the correct Call
 5. Modify Get to include Sorting and Paging (Pagination: Done)
 6. Add a Search option that does standard get with parameters. (Can be Post or Get)
@@ -31,7 +31,6 @@ Create example Javascript files to demo the API
 2. Respond with XML instead of JSON
 3. ? Convert to a class so that Callbacks are created as child object functions ?
 4. Consider modifying POST to update records as well if id is sent in the path
-
 
 # Installation
 
@@ -67,20 +66,19 @@ $config = Array(
 	)
 );
 ```
+
 Note select can also be set to false to prevent selecting of records (eg a monitoring end point where the systems should only be able to create new records)
 
 Using the API to fetch Database
+
 ```HTTP
 GET http://<server>/<project>/api.php/<tablename> <== Returns all  records in table
 GET http://<server>/<project>/api.php/<tablename>/<id> <== Returns single record on ID (note use of Key to define ID field in the config)
 GET http://<server>/<project>/api.php/<tablename>?offet=<number>&limit=<number> <== Returns records in table starting from Offset and returning Limit rows
 
-POST http://<server>/<project>/api.php/<tablename> <== creates new record - note fields to be included in formdata
+POST http://<server>/<project>/api.php/<tablename> <== creates new record - note fields to be included in formdata - returns new record key
 
 PUT http://<server>/<project>/api.php/<tablename>/<id> <== creates new record - note fields to be included in formdata - note the call must use x-www-form-urlencoded
 
 DELETE http://<server>/<project>/api.php/<tablename>/<id> <== Deletes record based on id
 ```
- 
-
-

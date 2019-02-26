@@ -95,7 +95,6 @@ function returnPUT($config, $mysqli, $info)
 	$key = $info["key"];
 
 	$struct = getSetValues($config, $mysqli, $info);
-	$set = $struct['set'];
 	$set2 = $struct['set2'];
 	$sql = "update `$tablename` set $set2 where id=$key"; 
 	//var_dump($struct);
@@ -115,11 +114,12 @@ function returnPOST($config, $mysqli, $info)
 	$tablename = getTablename($config, $info["table"]);
 	$key = $info["key"];
 
-	$set = getSetValues($config, $mysqli, $info);
-	$sql = "insert into `$table` set $set"; 
-
-	$result = ExecSQL($mysqli,$sql); 
-	return mysqli_insert_id($mysqli);
+	$struct = getSetValues($config, $mysqli, $info);
+	$set2 = $struct['set2'];
+	$sql = "insert into `$table` set $set2"; 
+	$result = PrepareExecSQL($mysqli,$sql,$struct['sss'], $struct['params']); 
+	//return $result['cnt'];
+	return mysqli_stmt_insert_id($result['stmt']);
 }
 
 function returnDELETE($config, $mysqli, $info)
@@ -158,11 +158,12 @@ function PrepareExecSQL($link, $sql, $pars = '', $params = [])
 	if ($stmt = mysqli_prepare($link, $sql)) {
 		if (count($params) > 0)
 		{
-			mysqli_stmt_bind_param($stmt, $pars, implode(', ', $params));
+			mysqli_stmt_bind_param($stmt, $pars, ...$params);
 		}
 		mysqli_stmt_execute($stmt);
 		$result['rows'] = mysqli_stmt_get_result($stmt);
 		$result['cnt'] = mysqli_stmt_affected_rows($stmt);
+		$result['stmt'] = $stmt;
 	}
 	else
 	{
