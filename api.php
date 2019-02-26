@@ -8,7 +8,7 @@ $config = Array(
 					"key" => "chatid",
 					"select" => Array("chatid","username","message","createddate"),
 					"update" => Array("message"),
-					"delete" => false,
+					"delete" => true,
 					"create" => Array("chatid","username","message")
 				),
     "user" => Array(

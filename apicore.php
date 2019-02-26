@@ -133,11 +133,11 @@ function returnDELETE($config, $mysqli, $info)
 	$tablename = getTablename($config, $info["table"]);
 	$key = $info["key"];
 
-	$set = getSetValues($config, $mysqli, $info);
-	$sql = "Delete from `$tablename` where id=$key"; 
+//	$struct = getSetValues($config, $mysqli, $info);
+	$sql = "Delete from `$tablename` where id=?"; //$key"; 
 
-	$result = ExecSQL($mysqli,$sql); 
-	return mysqli_affected_rows($mysqli);
+	$result = PrepareExecSQL($mysqli,$sql,'s',[$key]); 
+	return $result['cnt'];
 }
 
 function ExecSQL($link,$sql)
