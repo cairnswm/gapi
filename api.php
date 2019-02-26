@@ -3,6 +3,10 @@
 include_once "apicore.php";
 
 $config = Array(
+	"database" => Array("server" => 'localhost', 
+						"username" => 'root', 
+						"password" => '', 
+						"database" => 'eskomemp'),
     "messages" => Array(
 					"tablename" => "messages",
 					"key" => "chatid",

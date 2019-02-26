@@ -34,11 +34,11 @@ Create example Javascript files to demo the API
 
 # Installation
 
-Copy the api.php to your server directory. Open the file and set the Database Connection values (server, username, password, schema).
+Copy the api.php and apicore.php to your server directory. Open the api.php file and set the Database Connection values (server, username, password, schema).
 
 # Usage
 
-Modify the Config structure with the details of your tables
+Modify the Config structure (api.php) with the details of your tables
 
 ```PHP
 $config = Array(

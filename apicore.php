@@ -13,7 +13,7 @@ function Run($config, $mysqli = null)
 
 	// connect to or reuse the mysql database
 	if ($mysqli == null)
-	{ $link = mysqli_connect('localhost', 'root', '', 'eskomemp'); }
+	{ $link = mysqli_connect($config["database"]["server"], $config["database"]["username"], $config["database"]["password"], $config["database"]["database"]); }
 	else
 	{ $link = $mysqli; }
 	 	
