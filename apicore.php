@@ -95,8 +95,8 @@ function returnPUT($config, $mysqli, $info)
 	$key = $info["key"];
 
 	$struct = getSetValues($config, $mysqli, $info);
-	$set2 = $struct['set2'];
-	$sql = "update `$tablename` set $set2 where id=$key"; 
+	$set = $struct['set'];
+	$sql = "update `$tablename` set $set where id=$key"; 
 	//var_dump($struct);
 
 	$result = PrepareExecSQL($mysqli,$sql,$struct['sss'], $struct['params']); 
@@ -115,8 +115,8 @@ function returnPOST($config, $mysqli, $info)
 	$key = $info["key"];
 
 	$struct = getSetValues($config, $mysqli, $info);
-	$set2 = $struct['set2'];
-	$sql = "insert into `$table` set $set2"; 
+	$set = $struct['set'];
+	$sql = "insert into `$table` set $set"; 
 	$result = PrepareExecSQL($mysqli,$sql,$struct['sss'], $struct['params']); 
 	//return $result['cnt'];
 	return mysqli_stmt_insert_id($result['stmt']);
@@ -133,8 +133,7 @@ function returnDELETE($config, $mysqli, $info)
 	$tablename = getTablename($config, $info["table"]);
 	$key = $info["key"];
 
-//	$struct = getSetValues($config, $mysqli, $info);
-	$sql = "Delete from `$tablename` where id=?"; //$key"; 
+	$sql = "Delete from `$tablename` where id=?"; 
 
 	$result = PrepareExecSQL($mysqli,$sql,'s',[$key]); 
 	return $result['cnt'];
@@ -215,7 +214,7 @@ function getSetValues($config, $mysqli, $info)
 	$input = $info["input"];
 	$table = $info["table"];
 	$method = $info["method"];
-	$set = ''; $set2 = '';
+	$set = ''; 
 	$pars = '';
 	$params = [];
 	
@@ -236,9 +235,7 @@ function getSetValues($config, $mysqli, $info)
 		for ($i=0;$i<count($columns);$i++) {
 			if (in_array($columns[$i],$fieldlist))
 			{
-				$set.=(strlen($set)>0?',':'').'`'.$columns[$i].'`=';
-				$set.=($values[$i]===null?'NULL':'"'.$values[$i].'"');
-				$set2.=(strlen($set2)>0?',':'').'`'.$columns[$i].'`=?';
+				$set.=(strlen($set)>0?',':'').'`'.$columns[$i].'`=?';
 				$pars .= 's';
 				array_push($params,$values[$i]);
 			}
@@ -251,7 +248,7 @@ function getSetValues($config, $mysqli, $info)
 		}
 	}
 
-	return ['set' => $set, 'set2' => $set2, 'sss' => $pars, 'params' => $params];
+	return ['set' => $set, 'sss' => $pars, 'params' => $params];
 }
 
 // Read [table] parameter from urldecode

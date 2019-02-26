@@ -13,12 +13,13 @@ A RESTful API can also manage business logic. Simple business logic can added th
 # Idea
 
 1. Create a standard REST API that can connect to any table in the database (Done)
-2. Make the API Configutrable so through configuration the list of tables can be set, and the fields that can be seen, updated, deleted (Done)
+2. Make the API Configurable so through configuration the list of tables can be set, and the fields that can be seen, updated, deleted (Done)
 3. Add Call backs for Pre/POST functionality (Allows additional security)
 4. Auto Document the API with the correct Call
-5. Modify Get to include Sorting and Paging (Pagination: Done)
+5. Modify Get to include Paging (Pagination: Done, use offset and limit)
 6. Add a Search option that does standard get with parameters. (Can be Post or Get)
-7. Add Sorting option
+7. Modify Get to include Sorting option
+8. Use prepared statements to prevent SQL Injection (Done)
 
 # Demos
 
@@ -42,6 +43,10 @@ Modify the Config structure (api.php) with the details of your tables
 
 ```PHP
 $config = Array(
+	"database" => Array("server" => 'localhost',
+					"username" => 'username',
+					"password" => 'password',
+					"database" => 'schema'),
     "messages" => Array(
 					"key" => "id",  <=== Define the key field for the table in the database
 					"select" => Array("chatid","username","message","createddate"), <=== Limit which fields acan be selected
