@@ -1,5 +1,5 @@
 <?php
-// Based on https://www.leaseweb.com/labs/2015/10/creating-a-simple-rest-api-in-php/
+
 include_once "apicore.php";
 
 $config = Array(

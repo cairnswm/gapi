@@ -46,7 +46,7 @@ function Run($config, $mysqli = null)
 
 // Result for GET method
 // Includes by ID and All select
-// Pagination
+// Pagination (limit=20&offset=40)
 function returnGET($config, $mysqli, $info)
 {
 	if ($config[$info["table"]]["select"] == false)
@@ -66,9 +66,14 @@ function returnGET($config, $mysqli, $info)
 	$limit = (strlen($limit)>0?'Limit '.$limit:'');
 	
 	$fields = implode(', ', $config[$table]["select"]);
-	$sql = "select $fields from `".$tablename."`".($key?" WHERE ".$config[$table]["key"]."=$key ":" $limit"); 
+	$where = ''; $sss = ''; $param = [];
+	if ($key) { 
+		$where = " WHERE `".$config[$table]["key"]."`=?"; 
+		$sss = 's'; 
+		array_push($param,$key); }
+	$sql = "select $fields from `$tablename` $where $limit"; 
 	//echo $sql;
-	$result = ExecSQL($mysqli,$sql);
+	$result = PrepareExecSQL($mysqli,$sql,$sss,$param);
 	$res = "";
 	if (!$info["key"]) $res .= '[';
 	  for ($i=0;$i<mysqli_num_rows($result);$i++) {
@@ -140,6 +145,17 @@ function ExecSQL($link,$sql)
 	if (!$result) {
 	  http_response_code(404);
 	  die('Error: '.mysqli_error($link));
+	}
+	return $result;
+}
+
+function PrepareExecSQL($link, $sql, $pars, $params)
+{
+	$result = null;
+	if ($stmt = mysqli_prepare($link, $sql)) {
+			mysqli_stmt_bind_param($stmt, $pars, implode(', ', $params));
+			mysqli_stmt_execute($stmt);
+			$result = mysqli_stmt_get_result($stmt);
 	}
 	return $result;
 }

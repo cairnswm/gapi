@@ -2,6 +2,8 @@
 # gapi
 Generic API - PHP
 
+// Based on https://www.leaseweb.com/labs/2015/10/creating-a-simple-rest-api-in-php/
+
 # Concept
 
 Many systems are built with an API backend. Building an API can be a lot of work so this project is built to make it a lot quicker and easier to build a RESTful API against a mySQL database. The project allows the configuration of the api to control which tables and which fields can be accessed through the API.
