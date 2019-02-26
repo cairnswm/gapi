@@ -76,8 +76,8 @@ function returnGET($config, $mysqli, $info)
 	$result = PrepareExecSQL($mysqli,$sql,$sss,$param);
 	$res = "";
 	if (!$info["key"]) $res .= '[';
-	  for ($i=0;$i<mysqli_num_rows($result);$i++) {
-		$res .= ($i>0?',':'').json_encode(mysqli_fetch_object($result));
+	  for ($i=0;$i<mysqli_num_rows($result['rows']);$i++) {
+		$res .= ($i>0?',':'').json_encode(mysqli_fetch_object($result['rows']));
 	  }
 	  if (!$info["key"]) $res .= ']';
 	return $res;	
@@ -94,11 +94,14 @@ function returnPUT($config, $mysqli, $info)
 	$tablename = getTablename($config, $info["table"]);
 	$key = $info["key"];
 
-	$set = getSetValues($config, $mysqli, $info);
-	$sql = "update `$tablename` set $set where id=$key"; 
+	$struct = getSetValues($config, $mysqli, $info);
+	$set = $struct['set'];
+	$set2 = $struct['set2'];
+	$sql = "update `$tablename` set $set2 where id=$key"; 
+	//var_dump($struct);
 
-	$result = ExecSQL($mysqli,$sql); 
-	return mysqli_affected_rows($mysqli);
+	$result = PrepareExecSQL($mysqli,$sql,$struct['sss'], $struct['params']); 
+	return $result['cnt'];
 }
 
 function returnPOST($config, $mysqli, $info)
@@ -149,13 +152,21 @@ function ExecSQL($link,$sql)
 	return $result;
 }
 
-function PrepareExecSQL($link, $sql, $pars, $params)
+function PrepareExecSQL($link, $sql, $pars = '', $params = [])
 {
 	$result = null;
 	if ($stmt = mysqli_prepare($link, $sql)) {
+		if (count($params) > 0)
+		{
 			mysqli_stmt_bind_param($stmt, $pars, implode(', ', $params));
-			mysqli_stmt_execute($stmt);
-			$result = mysqli_stmt_get_result($stmt);
+		}
+		mysqli_stmt_execute($stmt);
+		$result['rows'] = mysqli_stmt_get_result($stmt);
+		$result['cnt'] = mysqli_stmt_affected_rows($stmt);
+	}
+	else
+	{
+		echo "Error";
 	}
 	return $result;
 }
@@ -203,7 +214,9 @@ function getSetValues($config, $mysqli, $info)
 	$input = $info["input"];
 	$table = $info["table"];
 	$method = $info["method"];
-	$set = '';
+	$set = ''; $set2 = '';
+	$pars = '';
+	$params = [];
 	
 	if (isset($input))
 	{
@@ -224,6 +237,9 @@ function getSetValues($config, $mysqli, $info)
 			{
 				$set.=(strlen($set)>0?',':'').'`'.$columns[$i].'`=';
 				$set.=($values[$i]===null?'NULL':'"'.$values[$i].'"');
+				$set2.=(strlen($set2)>0?',':'').'`'.$columns[$i].'`=?';
+				$pars .= 's';
+				array_push($params,$values[$i]);
 			}
 		}
 		
@@ -234,7 +250,7 @@ function getSetValues($config, $mysqli, $info)
 		}
 	}
 
-	return $set;
+	return ['set' => $set, 'set2' => $set2, 'sss' => $pars, 'params' => $params];
 }
 
 // Read [table] parameter from urldecode
