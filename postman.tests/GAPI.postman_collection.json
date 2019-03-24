@@ -6,33 +6,14 @@
 	},
 	"item": [
 		{
-			"name": "GetMessagebyID",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {},
-				"url": {
-					"raw": "http://localhost/gapi/api.php/chats/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"path": [
-						"gapi",
-						"api.php",
-						"chats",
-						"1"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "GetMessages",
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {},
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
 				"url": {
 					"raw": "http://localhost/gapi/api.php/chats/",
 					"protocol": "http",
@@ -50,6 +31,31 @@
 			"response": []
 		},
 		{
+			"name": "GetMessagebyID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost/gapi/api.php/chats/2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"gapi",
+						"api.php",
+						"chats",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "MessageCreate",
 			"request": {
 				"method": "POST",
@@ -60,19 +66,16 @@
 						{
 							"key": "chatid",
 							"value": "3",
-							"description": "",
 							"type": "text"
 						},
 						{
 							"key": "username",
 							"value": "William",
-							"description": "",
 							"type": "text"
 						},
 						{
 							"key": "message",
-							"value": "Create by GAPI",
-							"description": "",
+							"value": "Create by GAPI - prepare 2",
 							"type": "text"
 						}
 					]
@@ -94,6 +97,47 @@
 			"response": []
 		},
 		{
+			"name": "MessageSearch",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "field",
+							"value": "username, lat, lat",
+							"type": "text"
+						},
+						{
+							"key": "op",
+							"value": "=, >, <",
+							"type": "text"
+						},
+						{
+							"key": "value",
+							"value": "William, 115, 114",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost/gapi/api.php/messages/search",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"gapi",
+						"api.php",
+						"messages",
+						"search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "MessageUpdate",
 			"request": {
 				"method": "PUT",
@@ -103,14 +147,13 @@
 					"urlencoded": [
 						{
 							"key": "message\n",
-							"value": "Updated by GAPI - 2",
-							"description": "",
+							"value": "Updated by GAPI - 6",
 							"type": "text"
 						}
 					]
 				},
 				"url": {
-					"raw": "http://localhost/gapi/api.php/messages/4",
+					"raw": "http://localhost/gapi/api.php/messages/1",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -119,7 +162,7 @@
 						"gapi",
 						"api.php",
 						"messages",
-						"4"
+						"1"
 					]
 				}
 			},
@@ -136,25 +179,22 @@
 						{
 							"key": "chatid",
 							"value": "3",
-							"description": "",
 							"type": "text"
 						},
 						{
 							"key": "username",
 							"value": "William",
-							"description": "",
 							"type": "text"
 						},
 						{
 							"key": "message",
 							"value": "Create by GAPI",
-							"description": "",
 							"type": "text"
 						}
 					]
 				},
 				"url": {
-					"raw": "http://localhost/gapi/api.php/messages/8",
+					"raw": "http://localhost/gapi/api.php/messages/12",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -163,18 +203,21 @@
 						"gapi",
 						"api.php",
 						"messages",
-						"8"
+						"12"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "GetMessagesPaginatin",
+			"name": "GetMessagesPagination",
 			"request": {
 				"method": "GET",
 				"header": [],
-				"body": {},
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
 				"url": {
 					"raw": "http://localhost/gapi/api.php/messages/?offset=3&limit=2",
 					"protocol": "http",
@@ -197,6 +240,21 @@
 							"value": "2"
 						}
 					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Options",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": ""
 				}
 			},
 			"response": []

@@ -87,3 +87,19 @@ PUT http://<server>/<project>/api.php/<tablename>/<id> <== creates new record - 
 
 DELETE http://<server>/<project>/api.php/<tablename>/<id> <== Deletes record based on id
 ```
+
+#Search
+
+Searches are done using Post:
+```
+POST http://<server>/<project>/api.php/<tablename>/search <== creates new record - note fields to be included in formdata -- All fields added as AND 
+```
+Fields to be included in formData are
+field: Comma seperated list of field names
+op: Comma separated list of SQL operations
+value: Comma separated list of values to be searched for
+
+eg
+field: username, message
+op: =,like
+value: William, %GAPI%

@@ -35,9 +35,20 @@ function Run($config, $mysqli = null)
 	  case 'PUT':
 		echo returnPUT($config, $link, $info); break;
 	  case 'POST':
-	    echo returnPOST($config, $link, $info); break;
+	  {
+		  if (!isset($key)) 
+		  {
+			echo returnPOST($config, $link, $info); break;
+		  }
+		  else
+		  {
+			echo returnPOSTSearch($config, $link, $info); break;
+		  }
+	  }
 	  case 'DELETE':
 		echo returnDELETE($config, $link, $info); break;
+	  case 'OPTIONS':
+		echo returnOPTIONS($config, $link, $info); break;
 	}
 	 
 	// close mysql connection
@@ -103,6 +114,37 @@ function returnPUT($config, $mysqli, $info)
 	return $result['cnt'];
 }
 
+function returnPOSTSearch($config, $mysqli, $info)
+{
+	if ($config[$info["table"]]["create"] == false)
+	{
+		http_response_code(403);
+		die('Error: Action not allowed');
+	}
+	$table = $info["table"];
+	$tablename = getTablename($config, $info["table"]);
+	$key = $info["key"];
+
+	// User is doing a search
+	$struct = getSearchValues($config, $mysqli, $info);
+	$limit = "";
+	if (isset($_GET["offset"])) { $limit .= $_GET["offset"]; };
+	if (isset($_GET["limit"])) { $limit .= (strlen($limit)>0?',':'').$_GET["limit"]; };
+	$limit = (strlen($limit)>0?'Limit '.$limit:'');
+	$fields = implode(', ', $config[$table]["select"]);
+	$where = "WHERE ".$struct["where"]; $sss = $struct["sss"]; $param = $struct["params"];
+	$sql = "select $fields from `$tablename` $where $limit"; 
+	//echo $sql;
+	$result = PrepareExecSQL($mysqli,$sql,$sss,$param);
+	$res = "";
+	if (!$info["key"]) $res .= '[';
+	  for ($i=0;$i<mysqli_num_rows($result['rows']);$i++) {
+		$res .= ($i>0?',':'').json_encode(mysqli_fetch_object($result['rows']));
+	  }
+	  if (!$info["key"]) $res .= ']';
+	return $res;	
+}
+
 function returnPOST($config, $mysqli, $info)
 {
 	if ($config[$info["table"]]["create"] == false)
@@ -137,6 +179,22 @@ function returnDELETE($config, $mysqli, $info)
 
 	$result = PrepareExecSQL($mysqli,$sql,'s',[$key]); 
 	return $result['cnt'];
+}
+
+function returnOPTIONS($config, $mysqli, $info)
+{
+	if (isset($config[$info["table"]]["options"]) && ($config[$info["table"]]["options"] == false))
+	{
+		http_response_code(403);
+		die('Error: Action not allowed');
+	}
+	$table = $info["table"];
+	$tablename = getTablename($config, $info["table"]);
+	
+	$options = "";
+	include_once "gapi_document.php";
+	$options = gapi_swagger($config, $mysqli, $info);
+	return $options;
 }
 
 function ExecSQL($link,$sql)
@@ -249,6 +307,48 @@ function getSetValues($config, $mysqli, $info)
 	}
 
 	return ['set' => $set, 'sss' => $pars, 'params' => $params];
+}
+
+// extract the search values from the POST Data
+function getSearchValues($config, $mysqli, $info)
+{
+	$input = $info["input"];
+	$table = $info["table"];
+	$method = $info["method"];
+	$where = ''; 
+	$pars = '';
+	$params = [];
+	
+	if (isset($input))
+	{
+		// escape the columns and values from the input object
+		$columns = preg_replace('/[^a-z0-9_]+/i','',array_keys($input));
+		$values = array_map(function ($value) use ($mysqli) {
+		  if ($value===null) return null;
+		  return mysqli_real_escape_string($mysqli,(string)$value);
+		},array_values($input));		
+		
+		// Extract each set of values into arrays
+		$colarr = explode(',',$values[array_search('field', $columns)]);
+		$oparr = explode(',',$values[array_search('op', $columns)]);
+		$valarr = explode(',',$values[array_search('value', $columns)]);
+
+		// Build the fields
+		for ($i=0; $i<count($colarr); $i++)
+		{
+			$where.=(strlen($where)>0?' and ':'').'`'.trim($colarr[$i]).'`'.trim($oparr[$i]).'?';
+			$pars .= 's';
+			array_push($params,trim($valarr[$i]));
+		}
+		
+		if ($where == '') // If no where clause then error
+		{
+			http_response_code(304);
+			die();
+		}
+	}
+
+	return ['where' => $where, 'sss' => $pars, 'params' => $params];
 }
 
 // Read [table] parameter from urldecode
