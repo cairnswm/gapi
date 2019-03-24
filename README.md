@@ -35,7 +35,7 @@ Create example Javascript files to demo the API
 
 # Installation
 
-Copy the api.php and apicore.php to your server directory. Open the api.php file and set the Database Connection values (server, username, password, schema).
+Copy the api.php and apicore.php to your server directory. Open the api.php file and set the Database Connection values (server, username, password, schema). Also copy gapi_document.php to enable the auto documentation of your API through the OPTIONS method. If this file is excluded the API will be kept private and an error will be thrown instead of documentation being displayed.
 
 # Usage
 
@@ -88,10 +88,10 @@ PUT http://<server>/<project>/api.php/<tablename>/<id> <== creates new record - 
 DELETE http://<server>/<project>/api.php/<tablename>/<id> <== Deletes record based on id
 ```
 
-#Search
+# Search
 
 Searches are done using Post:
-```
+```HTTP
 POST http://<server>/<project>/api.php/<tablename>/search <== creates new record - note fields to be included in formdata -- All fields added as AND 
 ```
 Fields to be included in formData are
@@ -99,7 +99,9 @@ field: Comma seperated list of field names
 op: Comma separated list of SQL operations
 value: Comma separated list of values to be searched for
 
-eg
+eg - Searches for all messages from user William that contain GAPI in them
+```
 field: username, message
 op: =,like
 value: William, %GAPI%
+```
