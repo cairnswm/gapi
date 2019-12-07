@@ -22,6 +22,7 @@ function Run($config, $mysqli = null)
 	// Get URL Parameters .../[Table]/[key]
 	$table = getTable($config, $request);
 	if (count($request) > 1) { 	$key = $request[1]; }
+	if (count($request) > 2) { 	$info["subkey"] =  $request[2]; }
 	// Place values into structure that can be passed to child functions
 	$info["table"] = $table;
 	$info["key"] = $key;
@@ -135,14 +136,22 @@ function returnPOSTSearch($config, $mysqli, $info)
 	$table = $info["table"];
 	$tablename = getTablename($config, $info["table"]);
 	$key = $info["key"];
+	//var_dump($info);
 
 	// User is doing a search
 	$struct = getSearchValues($config, $mysqli, $info);
 	$limit = "";
-	if (isset($_GET["offset"])) { $limit .= $_GET["offset"]; };
-	if (isset($_GET["limit"])) { $limit .= (strlen($limit)>0?',':'').$_GET["limit"]; };
-	$limit = (strlen($limit)>0?'Limit '.$limit:'');
-	$fields = implode(', ', $config[$table]["select"]);
+	if ($info["subkey"] == "count")
+	{
+		$fields = "count(1) as count";
+	}
+	else
+	{
+		if (isset($_GET["offset"])) { $limit .= $_GET["offset"]; };
+		if (isset($_GET["limit"])) { $limit .= (strlen($limit)>0?',':'').$_GET["limit"]; };
+		$limit = (strlen($limit)>0?'Limit '.$limit:'');
+		$fields = implode(', ', $config[$table]["select"]);
+	}
 	$where = "WHERE ".$struct["where"]; $sss = $struct["sss"]; $param = $struct["params"];
 	$sql = "select $fields from `$tablename` $where $limit"; 
 	//echo $sql;
