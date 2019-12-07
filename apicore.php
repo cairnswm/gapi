@@ -79,9 +79,20 @@ function returnGET($config, $mysqli, $info)
 	$fields = implode(', ', $config[$table]["select"]);
 	$where = ''; $sss = ''; $param = [];
 	if ($key) { 
-		$where = " WHERE `".$config[$table]["key"]."`=?"; 
-		$sss = 's'; 
-		array_push($param,$key); }
+		if (is_numeric($key))
+		{
+			$where = " WHERE `".$config[$table]["key"]."`=?"; 
+			$sss = 's'; 
+			array_push($param,$key); 
+		}
+		else
+		{
+			if ($key = "count")
+			{
+				$fields = "count(1) as count";
+			}
+		}
+	}
 	$sql = "select $fields from `$tablename` $where $limit"; 
 	//echo $sql;
 	$result = PrepareExecSQL($mysqli,$sql,$sss,$param);

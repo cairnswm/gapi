@@ -4,16 +4,16 @@ include_once "apicore.php";
 
 $config = Array(
 	"database" => Array("server" => 'localhost', 
-						"username" => 'root', 
-						"password" => '', 
-						"database" => 'eskomemp'),
-    "messages" => Array(
-					"tablename" => "messages",
-					"key" => "chatid",
-					"select" => Array("chatid","username","message","createddate"),
-					"update" => Array("message"),
+						"username" => 'justdance', 
+						"password" => 'justdance', 
+						"database" => 'justdance'),
+    "friendrating" => Array(
+					"tablename" => "friendrating",
+					"key" => "id",
+					"select" => Array("id","name","icon"),
+					"update" => Array("name","icon"),
 					"delete" => true,
-					"create" => Array("chatid","username","message")
+					"create" => Array("id","name","icon")
 				),
     "user" => Array(
 					"key" => "id",

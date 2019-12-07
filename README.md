@@ -77,9 +77,10 @@ Note select can also be set to false to prevent selecting of records (eg a monit
 Using the API to fetch Database
 
 ```HTTP
-GET http://<server>/<project>/api.php/<tablename> <== Returns all  records in table
+GET http://<server>/<project>/api.php/<tablename> <== Returns all records in table
+GET http://<server>/<project>/api.php/<tablename>/count <== Returns count of records in table
 GET http://<server>/<project>/api.php/<tablename>/<id> <== Returns single record on ID (note use of Key to define ID field in the config)
-GET http://<server>/<project>/api.php/<tablename>?offet=<number>&limit=<number> <== Returns records in table starting from Offset and returning Limit rows
+GET http://<server>/<project>/api.php/<tablename>?offset=<number>&limit=<number> <== Returns records in table starting from Offset and returning Limit rows
 
 POST http://<server>/<project>/api.php/<tablename> <== creates new record - note fields to be included in formdata - returns new record key
 
@@ -91,15 +92,18 @@ DELETE http://<server>/<project>/api.php/<tablename>/<id> <== Deletes record bas
 # Search
 
 Searches are done using Post:
+
 ```HTTP
-POST http://<server>/<project>/api.php/<tablename>/search <== creates new record - note fields to be included in formdata -- All fields added as AND 
+POST http://<server>/<project>/api.php/<tablename>/search <== execute search - note fields to be included in formdata -- All fields added as AND
 ```
+
 Fields to be included in formData are
 field: Comma seperated list of field names
 op: Comma separated list of SQL operations
 value: Comma separated list of values to be searched for
 
 eg - Searches for all messages from user William that contain GAPI in them
+
 ```
 field: username, message
 op: =,like
