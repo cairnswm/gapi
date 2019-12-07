@@ -141,7 +141,8 @@ function returnPOSTSearch($config, $mysqli, $info)
 	// User is doing a search
 	$struct = getSearchValues($config, $mysqli, $info);
 	$limit = "";
-	if ($info["subkey"] == "count")
+	
+	if ((isset($info["subkey"])) && ($info["subkey"] == "count"))
 	{
 		$fields = "count(1) as count";
 	}

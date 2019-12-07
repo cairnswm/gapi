@@ -15,12 +15,12 @@ $config = Array(
 					"delete" => true,
 					"create" => Array("id","name","icon")
 				),
-    "user" => Array(
+    "profile" => Array(
 					"key" => "id",
-					"select" => Array("id","username","fullname"),
-					"update" => Array("fullname"),
+					"select" => Array("id","name","area","gender"),
+					"update" => Array("name","area","gender"),
 					"delete" => false,
-					"create" => false
+					"create" => Array("id","name","area","gender")
 				),
 	"chats" => Array(
 					"tablename" => "chat",
