@@ -21,10 +21,10 @@ $config = Array(
 				),
     "profile" => Array(
 					"key" => "id",
-					"select" => Array("id","name","area","gender","status","avatar","message"),
-					"update" => Array("name","area","gender","status","avatar","message"),
+					"select" => Array("id","name","area","gender","status","avatar","message","tagline"),
+					"update" => Array("name","area","gender","status","avatar","message","tagline"),
 					"delete" => false,
-					"create" => Array("id","name","area","gender","status","message")
+					"create" => Array("id","name","area","gender","status","message","tagline")
 				),
 	"friends" => Array(
 					"tablename" => "friends",

@@ -102,7 +102,7 @@ function returnGET($config, $mysqli, $info)
 		}
 		else
 		{
-			if ($key = "count")
+			if ($key == "count")
 			{
 				$fields = "count(1) as count";
 			}
@@ -173,11 +173,11 @@ function returnPOSTSearch($config, $mysqli, $info)
 	//echo $sql;
 	$result = PrepareExecSQL($mysqli,$sql,$sss,$param);
 	$res = "";
-	if (!$info["key"]) $res .= '[';
-	  for ($i=0;$i<mysqli_num_rows($result['rows']);$i++) {
-		$res .= ($i>0?',':'').json_encode(mysqli_fetch_object($result['rows']));
-	  }
-	  if (!$info["key"]) $res .= ']';
+	$res .= '[';
+	for ($i=0;$i<mysqli_num_rows($result['rows']);$i++) {
+	$res .= ($i>0?',':'').json_encode(mysqli_fetch_object($result['rows']));
+	}
+	$res .= ']';
 	return $res;	
 }
 
