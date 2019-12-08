@@ -1,4 +1,18 @@
 <?php
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: POST, GET, DELETE, PUT, PATCH, OPTIONS');
+        header('Access-Control-Allow-Headers: token, Content-Type');
+        header('Access-Control-Max-Age: 1728000');
+        header('Content-Length: 0');
+        header('Content-Type: text/plain');
+        die();
+    }
+
+    header('Access-Control-Allow-Origin: *');
+	header('Content-Type: application/json');
+	
 // Only Run needs to be called to do all REST calls
 // Currently supported methods are GET(Select), POST(insert), PUT(update), DELETE(Delete)
 function Run($config, $mysqli = null)
@@ -98,11 +112,12 @@ function returnGET($config, $mysqli, $info)
 	//echo $sql;
 	$result = PrepareExecSQL($mysqli,$sql,$sss,$param);
 	$res = "";
-	if (!$info["key"]) $res .= '[';
-	  for ($i=0;$i<mysqli_num_rows($result['rows']);$i++) {
+	// To allow use of views also check if there are multiple rows returned to define the array 
+	if (!$info["key"] || mysqli_num_rows($result['rows']) > 1) $res .= '[';
+	for ($i=0;$i<mysqli_num_rows($result['rows']);$i++) {
 		$res .= ($i>0?',':'').json_encode(mysqli_fetch_object($result['rows']));
-	  }
-	  if (!$info["key"]) $res .= ']';
+	}
+	if (!$info["key"] || mysqli_num_rows($result['rows']) > 1) $res .= ']';
 	return $res;	
 }
 

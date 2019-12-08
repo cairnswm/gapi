@@ -7,6 +7,10 @@ $config = Array(
 						"username" => 'justdance', 
 						"password" => 'justdance', 
 						"database" => 'justdance'),
+	"wall" => Array(
+					"key" => "id",
+					"select" => Array("id","friendid","name","area","gender","status","avatar","message")
+	),
     "friendrating" => Array(
 					"tablename" => "friendrating",
 					"key" => "id",
@@ -17,18 +21,18 @@ $config = Array(
 				),
     "profile" => Array(
 					"key" => "id",
-					"select" => Array("id","name","area","gender"),
-					"update" => Array("name","area","gender"),
+					"select" => Array("id","name","area","gender","status","avatar","message"),
+					"update" => Array("name","area","gender","status","avatar","message"),
 					"delete" => false,
-					"create" => Array("id","name","area","gender")
+					"create" => Array("id","name","area","gender","status","message")
 				),
-	"chats" => Array(
-					"tablename" => "chat",
+	"friends" => Array(
+					"tablename" => "friends",
 					"key" => "id",
-					"select" => Array("id","name"),
-					"update" => false,
+					"select" => Array("id","profileid","friendid","rating"),
+					"update" => Array("rating"),
 					"delete" => false,
-					"create" => false
+					"create" => Array("id","profileid","friendid","rating"),
 	)
 );
 
