@@ -27,7 +27,12 @@ function Run($config, $mysqli = null)
 
 	// connect to or reuse the mysql database
 	if ($mysqli == null)
-	{ $link = mysqli_connect($config["database"]["server"], $config["database"]["username"], $config["database"]["password"], $config["database"]["database"]); }
+	{ 
+		$link = mysqli_connect($config["database"]["server"], $config["database"]["username"], $config["database"]["password"], $config["database"]["database"]); 
+		if (mysqli_connect_errno()) {
+			echo "Failed to connect to MySQL: " . mysqli_connect_error();
+		}
+	}
 	else
 	{ $link = $mysqli; }
 	 	
@@ -51,17 +56,30 @@ function Run($config, $mysqli = null)
 		echo returnPUT($config, $link, $info); break;
 	  case 'POST':
 	  {
-		  if (!isset($key)) 
-		  {
-			echo returnPOST($config, $link, $info); break;
-		  }
-		  else
-		  {
-			echo returnPOSTSearch($config, $link, $info); break;
-		  }
+		try {
+			  if (!isset($key)) 
+			{
+				echo returnPOST($config, $link, $info); break;
+			}
+			else
+			{
+				echo returnPOSTSearch($config, $link, $info); break;
+			}
+		}
+		catch (Exception $e)
+		{
+			 echo "Error: ".$e->getMessage();
+		}
+	   }
+	  case 'DELETE':		
+	  if (isset($key)) 
+	  {
+		  echo returnDELETE($config, $link, $info); break;
 	  }
-	  case 'DELETE':
-		echo returnDELETE($config, $link, $info); break;
+	  else
+	  {
+		  echo returnDELETEWhere($config, $link, $info); break;
+	  }	  
 	  case 'OPTIONS':
 		echo returnOPTIONS($config, $link, $info); break;
 	}
@@ -73,6 +91,9 @@ function Run($config, $mysqli = null)
 // Result for GET method
 // Includes by ID and All select
 // Pagination (limit=20&offset=40)
+// url: /<tablename> returns all records
+// url: /<tablename>/<id> returns data for id
+// url: /<tablename>/<id>/count returns count for id
 function returnGET($config, $mysqli, $info)
 {
 	if ($config[$info["table"]]["select"] == false)
@@ -80,45 +101,75 @@ function returnGET($config, $mysqli, $info)
 		http_response_code(401);
 		die('Error: Action not allowed');
 	}
-	//echo "returnGet";
 	$table = $info["table"];
 	$tablename = getTablename($config, $info["table"]);
 	$key = $info["key"];
 	// Check for Pagination  limit=20&offset=40
 	$limit = "";
-	//var_dump($_GET);
 	if (isset($_GET["offset"])) { $limit .= $_GET["offset"]; };
 	if (isset($_GET["limit"])) { $limit .= (strlen($limit)>0?',':'').$_GET["limit"]; };
 	$limit = (strlen($limit)>0?'Limit '.$limit:'');
-	
-	$fields = implode(', ', $config[$table]["select"]);
 	$where = ''; $sss = ''; $param = [];
-	if ($key) { 
-		if (is_numeric($key))
+
+	// If ["select"] is an array then this is a standard select from a table
+	if (is_array($config[$table]["select"]))
+	{
+		if ((isset($info["subkey"]) && $info["subkey"] == "count") || $info["key"] == "count" )
 		{
-			$where = " WHERE `".$config[$table]["key"]."`=?"; 
-			$sss = 's'; 
-			array_push($param,$key); 
+			$fields = "count(1) as count";
 		}
 		else
 		{
-			if ($key == "count")
+			$fields = implode(', ', $config[$table]["select"]);
+		}
+		$where = "";
+		if ($key) { 
+			if (is_numeric($key))
 			{
-				$fields = "count(1) as count";
-			}
+				$where = " WHERE `".$config[$table]["key"]."`=?"; 
+				$sss = 's'; 
+				array_push($param,$key); 
+			}		
+		}
+		$sql = "select $fields from `$tablename` $where $limit"; 
+	}	
+	else
+	// If ["select"] is not an array then assumed to be a select statement
+	{
+		$where = "";
+		if (strpos($config[$table]["select"],"{".$config[$table]["key"]."}") != false)
+		{
+			$sql = str_replace("{".$config[$table]["key"]."}","?",$config[$table]["select"]." $where $limit");
+			$sss = "s";
+			array_push($param,$info["key"]); 
+		}
+		else
+		{
+			$sql = $config[$table]["select"]." $where $limit"; 
+		}
+		if ($info["key"] == "count" || (isset($info["subkey"]) && $info["subkey"] == "count" ))
+		{
+			$sql = "select count(1) as count from (".$sql.") t";
 		}
 	}
-	$sql = "select $fields from `$tablename` $where $limit"; 
-	//echo $sql;
-	$result = PrepareExecSQL($mysqli,$sql,$sss,$param);
+	$rowresult = PrepareExecSQL($mysqli,$sql,$sss,$param);	
 	$res = "";
-	// To allow use of views also check if there are multiple rows returned to define the array 
-	if (!$info["key"] || mysqli_num_rows($result['rows']) > 1) $res .= '[';
-	for ($i=0;$i<mysqli_num_rows($result['rows']);$i++) {
-		$res .= ($i>0?',':'').json_encode(mysqli_fetch_object($result['rows']));
+	if (!$rowresult) { // in case of empty result set
+		if (array_key_exists("selectarray", $config[$table]) && ($config[$table]["selectarray"] == true)) {
+			$res = [];
+		} else  { 
+			$res = "";
+		}
+		return $res;
 	}
-	if (!$info["key"] || mysqli_num_rows($result['rows']) > 1) $res .= ']';
-	return $res;	
+	// To allow use of views also check if there are multiple rows returned to define the array 
+	//var_dump($rowresult);
+	if (($rowresult) && (!$info["key"] || count($rowresult) > 1 || (isset($config[$table]["selectarray"])) && ($config[$table]["selectarray"] == true))) $res .= '[';
+	for ($i=0;$i<count($rowresult);$i++) {
+		$res .= ($i>0?',':'').json_encode($rowresult[$i]);
+	}
+	if (!$info["key"] || count($rowresult) > 1 || (isset($config[$table]["selectarray"]) && ($config[$table]["selectarray"] == true))) $res .= ']';
+	return $res;
 }
 
 function returnPUT($config, $mysqli, $info)
@@ -134,10 +185,20 @@ function returnPUT($config, $mysqli, $info)
 
 	$struct = getSetValues($config, $mysqli, $info);
 	$set = $struct['set'];
-	$sql = "update `$tablename` set $set where id=$key"; 
-	//var_dump($struct);
+	$where = "";
+	if ($key) { 
+		if (is_numeric($key))
+		{
+			$where = " WHERE `".$config[$table]["key"]."`=?"; 
+			$struct['sss'] .= 's'; 
+			array_push($struct['params'],$key); 
+		}		
+	}
+
+	$sql = "update `$tablename` set $set  $where"; 
 
 	$result = PrepareExecSQL($mysqli,$sql,$struct['sss'], $struct['params']); 
+	http_response_code(200);
 	return $result['cnt'];
 }
 
@@ -151,7 +212,6 @@ function returnPOSTSearch($config, $mysqli, $info)
 	$table = $info["table"];
 	$tablename = getTablename($config, $info["table"]);
 	$key = $info["key"];
-	//var_dump($info);
 
 	// User is doing a search
 	$struct = getSearchValues($config, $mysqli, $info);
@@ -170,12 +230,10 @@ function returnPOSTSearch($config, $mysqli, $info)
 	}
 	$where = "WHERE ".$struct["where"]; $sss = $struct["sss"]; $param = $struct["params"];
 	$sql = "select $fields from `$tablename` $where $limit"; 
-	//echo $sql;
-	$result = PrepareExecSQL($mysqli,$sql,$sss,$param);
-	$res = "";
-	$res .= '[';
-	for ($i=0;$i<mysqli_num_rows($result['rows']);$i++) {
-	$res .= ($i>0?',':'').json_encode(mysqli_fetch_object($result['rows']));
+	$rowresult = PrepareExecSQL($mysqli,$sql,$sss,$param);	
+	$res = '[';
+	for ($i=0;$i<count($rowresult);$i++) {
+		$res .= ($i>0?',':'').json_encode($rowresult[$i]);
 	}
 	$res .= ']';
 	return $res;	
@@ -195,9 +253,12 @@ function returnPOST($config, $mysqli, $info)
 	$struct = getSetValues($config, $mysqli, $info);
 	$set = $struct['set'];
 	$sql = "insert into `$table` set $set"; 
+	$table = $info["table"];
+
 	$result = PrepareExecSQL($mysqli,$sql,$struct['sss'], $struct['params']); 
 	//return $result['cnt'];
-	return mysqli_stmt_insert_id($result['stmt']);
+	http_response_code(200);
+	return $result;
 }
 
 function returnDELETE($config, $mysqli, $info)
@@ -215,6 +276,27 @@ function returnDELETE($config, $mysqli, $info)
 
 	$result = PrepareExecSQL($mysqli,$sql,'s',[$key]); 
 	return $result['cnt'];
+}
+
+function returnDELETEWhere($config, $mysqli, $info)
+{
+	if ($config[$info["table"]]["delete"] == false)
+	{
+		http_response_code(403);
+		die('Error: Action not allowed');
+	}
+	
+	$table = $info["table"];
+	$tablename = getTablename($config, $info["table"]);
+
+	// User is doing a search
+	$struct = getSearchValues($config, $mysqli, $info);
+	
+	$where = "WHERE ".$struct["where"]; $sss = $struct["sss"]; $param = $struct["params"];
+	$sql = "DELETE from `$tablename` $where"; 
+	//echo $sql;
+	$res = PrepareExecSQL($mysqli,$sql,$sss,$param);	
+	return $res; 
 }
 
 function returnOPTIONS($config, $mysqli, $info)
@@ -245,25 +327,53 @@ function ExecSQL($link,$sql)
 	return $result;
 }
 
-function PrepareExecSQL($link, $sql, $pars = '', $params = [])
-{
-	$result = null;
-	if ($stmt = mysqli_prepare($link, $sql)) {
-		if (count($params) > 0)
+// https://stackoverflow.com/questions/24363755/mysqli-bind-results-to-an-array
+function db_query($dbconn, $sql, $params_types, $params) { // pack dynamic number of remaining arguments into array
+	// GET QUERY TYPE
+	$query_type = strtoupper(substr(trim($sql), 0, 4));
+	//echo $sql;
+  
+	$stmt = mysqli_stmt_init($dbconn);
+	if ( mysqli_stmt_prepare($stmt, $sql) ) {
+		if ($params_types != "")
 		{
-			mysqli_stmt_bind_param($stmt, $pars, ...$params);
+		  mysqli_stmt_bind_param($stmt, $params_types, ...$params); // unpack
 		}
-		mysqli_stmt_execute($stmt);
-		$result['rows'] = mysqli_stmt_get_result($stmt);
-		$result['cnt'] = mysqli_stmt_affected_rows($stmt);
-		$result['stmt'] = $stmt;
+	  mysqli_stmt_execute($stmt);
+  
+	  if ( 'SELE' == $query_type || '(SEL' == $query_type ) {
+		  
+		$result = mysqli_stmt_result_metadata($stmt);
+		list($columns, $columns_vars) = array(array(), array());
+		while ( $field = mysqli_fetch_field($result) ) {
+		  $columns[] = $field->name;
+		  $columns_vars[] = &${$field->name};
+		}
+		call_user_func_array('mysqli_stmt_bind_result', array_merge(array($stmt), $columns_vars));
+		$return_array = array();
+		while ( mysqli_stmt_fetch($stmt) ) {
+		  $row = array();
+		  foreach ( $columns as $col ) {
+			$row[$col] = ${$col};
+		  }
+		  $return_array[] = $row;
+		}
+  
+		return $return_array;
+	  } // end query_type SELECT
+  
+	  else if ( 'INSE' == $query_type ) {
+		return mysqli_insert_id($dbconn);
+	  }
+	  return 1;
 	}
-	else
-	{
-		echo "Error";
-	}
-	return $result;
-}
+  }
+  
+  function PrepareExecSQL($link, $sql, $pars = '', $params = [])
+  {	
+	  $result = db_query($link, $sql, $pars, $params);
+	  return $result;
+  }
 
 // Get tablename from config if defined
 // Allows api name to be different from tablename
@@ -290,11 +400,25 @@ function getParameters($method)
 	// Load Parameters into generic variable
 	switch ($method) {
 	case 'PUT':
-	    $put_data = file_get_contents('php://input');
+	case 'DELETE':
+		$put_data = file_get_contents('php://input');
 		parse_str($put_data, $post_vars);
 		$input = $post_vars; break;
     case 'POST':
-		$input = $_POST; break;
+		$contenttype = $_SERVER["CONTENT_TYPE"];
+		// if application json content
+		if ($contenttype == "application/json")
+		{
+			$put_data = file_get_contents('php://input');
+			//parse_str($put_data, $post_vars);
+			$post_vars = json_decode($put_data, true);
+			$input = $post_vars;
+		}
+		else // if form data
+		{
+			$input = $_POST;
+		}
+		 break;
 	}
 	return $input;
 }
@@ -337,11 +461,11 @@ function getSetValues($config, $mysqli, $info)
 		
 		if ($set == '')
 		{
-			http_response_code(304);
-			die();
+			var_dump($input);
+			//http_response_code(304);
+			die("No values");
 		}
 	}
-
 	return ['set' => $set, 'sss' => $pars, 'params' => $params];
 }
 

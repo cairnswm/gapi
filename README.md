@@ -10,12 +10,12 @@ Many systems are built with an API backend. Building an API can be a lot of work
 
 A RESTful API can also manage business logic. Simple business logic can added through various callbacks (not yet implemented)
 
-# Idea
+# The Idea
 
 1. Create a standard REST API that can connect to any table in the database (Done)
 2. Make the API Configurable so through configuration the list of tables can be set, and the fields that can be seen, updated, deleted (Done)
 3. Add Call backs for Pre/POST functionality (Allows additional security)
-4. Auto Document the API with the correct Call
+4. Auto Document the API with the correct Call (Needs to be redone)
 5. Modify Get to include Paging (Pagination: Done, use offset and limit)
 6. Add a Search option that does standard get with parameters. (Can be Post or Get)
 7. Modify Get to include Sorting option
@@ -23,15 +23,14 @@ A RESTful API can also manage business logic. Simple business logic can added th
 
 # Demos
 
-Create Demo database and Demo config
-Create example Javascript files to demo the API
+Create Demo database and Demo config (TODO)
+Create example Javascript files to demo the API (TODO)
 
 # Future
 
 1. Allow calls to load child objects as Collections within the JSON
-2. Respond with XML instead of JSON
-3. ? Convert to a class so that Callbacks are created as child object functions ?
-4. Consider modifying POST to update records as well if id is sent in the path
+2. Consider modifying POST to update records as well if id is sent in the path (Done)
+3. Records can be Deleted based on a serch collection being sent instead of an id (See Post for a seach collection format) (Done)
 
 # Installation
 
