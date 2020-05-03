@@ -51,7 +51,12 @@ function Run($config, $mysqli = null)
 	// Called method functionality
 	switch ($method) {
 	  case 'GET':
-		echo returnGET($config, $link, $info); break;
+		// Check if user is trying to get documentation or from an actual table
+		if ($info["table"] === "swagger") {
+			echo returnOPTIONS($config, $link, $info); break;
+		} else {
+			echo returnGET($config, $link, $info); break;
+		}
 	  case 'PUT':
 		echo returnPUT($config, $link, $info); break;
 	  case 'POST':
