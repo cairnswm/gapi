@@ -12,13 +12,14 @@ A RESTful API can also manage business logic. Simple business logic can added th
 
 # The Idea
 
+When I created this PHP project the idea was to create an as simple as possible way of adding a REST API on top of any existing mySQL database. The original concept had the following goals:
 1. Create a standard REST API that can connect to any table in the database (Done)
 2. Make the API Configurable so through configuration the list of tables can be set, and the fields that can be seen, updated, deleted (Done)
-3. Add Call backs for Pre/POST functionality (Allows additional security)
+3. _Add Call backs for Pre/POST functionality (Allows additional security) (TODO)_
 4. Auto Document the API with the correct Call (Needs to be redone)
 5. Modify Get to include Paging (Pagination: Done, use offset and limit)
 6. Add a Search option that does standard get with parameters. (Can be Post or Get)
-7. Modify Get to include Sorting option
+7. Modify Get to include Sorting option (TODO)
 8. Use prepared statements to prevent SQL Injection (Done)
 
 # Demos
@@ -28,9 +29,20 @@ Create example Javascript files to demo the API (TODO)
 
 # Future
 
-1. Allow calls to load child objects as Collections within the JSON
+Once I got the basic library working I identified the following additional functionalities to add:
+1. _Allow calls to load child objects as Collections within the JSON (TODO)_
 2. Consider modifying POST to update records as well if id is sent in the path (Done)
-3. Records can be Deleted based on a serch collection being sent instead of an id (See Post for a seach collection format) (Done)
+2. Consider modifying DELETE to update bulk delete if a search collection is included (and no ID is sent) (Done)
+3. Records can be Deleted based on a search collection being sent instead of an id (See below for a seach collection format) (Done)
+4. _Bulk insert using a collection of records as part of POST (TODO)_
+5. _Bulk update using seach collection (TODO)_
+6. _Manage security using an Auth library and tokens (TODO)_
+7. _Create an array of fields that may be used in a search collection, eg so only indexed fields can be searched (TODO)_
+
+
+# Known issues
+
+The documentation option is not valid anymore due to options being added to manage CORS. Will be moved to new functionality, possibly called if a get is made to an imaginary table called swagger (TODO)
 
 # Installation
 
@@ -51,7 +63,7 @@ $config = Array(
 					"select" => Array("chatid","username","message","createddate"), <=== Limit which fields acan be selected
 					"update" => Array("message"), <=== Limit which fields can be updated
 					"delete" => true,  <=== Allow deletions
-					"create" => Array("chatid","username","message")  <=== Limit which fields can be detailed when new record is created (not id in this case is auto)
+					"create" => Array("chatid","username","message")  <=== Limit which fields can be detailed when new record is created (note id in this case is auto)
 				),
     "user" => Array(
 					"key" => "id",
@@ -73,7 +85,7 @@ $config = Array(
 
 Note select can also be set to false to prevent selecting of records (eg a monitoring end point where the systems should only be able to create new records)
 
-Using the API to fetch Database
+Using the API to interact with the Database
 
 ```HTTP
 GET http://<server>/<project>/api.php/<tablename> <== Returns all records in table
@@ -86,6 +98,7 @@ POST http://<server>/<project>/api.php/<tablename> <== creates new record - note
 PUT http://<server>/<project>/api.php/<tablename>/<id> <== creates new record - note fields to be included in formdata - note the call must use x-www-form-urlencoded
 
 DELETE http://<server>/<project>/api.php/<tablename>/<id> <== Deletes record based on id
+DELETE http://<server>/<project>/api.php/<tablename>/ <== Deletes record based on where collection
 ```
 
 # Search
@@ -96,9 +109,9 @@ Searches are done using Post:
 POST http://<server>/<project>/api.php/<tablename>/search <== execute search - note fields to be included in formdata -- All fields added as AND
 ```
 
-Fields to be included in formData are
+Fields to be included in formData are:
 field: Comma seperated list of field names
-op: Comma separated list of SQL operations
+op: Comma separated list of SQL operations (no validation is made on the op)
 value: Comma separated list of values to be searched for
 
 eg - Searches for all messages from user William that contain GAPI in them
@@ -108,3 +121,5 @@ field: username, message
 op: =,like
 value: William, %GAPI%
 ```
+
+Selding a DELETE without an id in the path will execute a "delete .. where ..." using the same structure as for search
