@@ -38,6 +38,7 @@ Once I got the basic library working I identified the following additional funct
 5. _Bulk update using seach collection (TODO)_
 6. _Manage security using an Auth library and tokens (TODO)_
 7. _Create an array of fields that may be used in a search collection, eg so only indexed fields can be searched (TODO)_
+8. _Modifiy the documentation to be valid swagger format :O (TODO)_
 
 
 # Known issues
@@ -122,4 +123,4 @@ op: =,like
 value: William, %GAPI%
 ```
 
-Selding a DELETE without an id in the path will execute a "delete .. where ..." using the same structure as for search
+Sending a DELETE without an id in the path will execute a "delete .. where ..." using the same structure as for search
