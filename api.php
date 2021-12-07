@@ -10,9 +10,9 @@ function afterSelect($results) {
 
 $config = Array(
 	"database" => Array("server" => 'localhost', 
-						"username" => 'justdance', 
-						"password" => 'justdance', 
-						"database" => 'justdance'),
+						"username" => 'gapi', 
+						"password" => 'SO6OzIwItoGu', 
+						"database" => 'gapi'),
 	"wall" => Array(
 					"key" => "id",
 					"select" => Array("id","friendid","name","gender","status","avatar","message"),
