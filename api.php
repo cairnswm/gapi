@@ -2,6 +2,12 @@
 
 include_once "apicore.php";
 
+function afterSelect($results) {
+	var_dump($results);
+	$results[0]["message"] = "After Select";
+	return $results;
+}
+
 $config = Array(
 	"database" => Array("server" => 'localhost', 
 						"username" => 'justdance', 
@@ -9,7 +15,8 @@ $config = Array(
 						"database" => 'justdance'),
 	"wall" => Array(
 					"key" => "id",
-					"select" => Array("id","friendid","name","area","gender","status","avatar","message")
+					"select" => Array("id","friendid","name","gender","status","avatar","message"),
+					"afterselect" => "afterSelect"
 	),
     "friendrating" => Array(
 					"tablename" => "friendrating",

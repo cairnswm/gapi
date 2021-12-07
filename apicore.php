@@ -51,18 +51,26 @@ function Run($config, $mysqli = null)
 	// Called method functionality
 	switch ($method) {
 	  case 'GET':
-		// Check if user is trying to get documentation or from an actual table
-		if ($info["table"] === "swagger") {
-			echo returnOPTIONS($config, $link, $info); break;
-		} else {
-			echo returnGET($config, $link, $info); break;
+		{
+			try {
+				// Check if user is trying to get documentation or from an actual table
+				if ($info["table"] === "swagger") {
+					echo returnOPTIONS($config, $link, $info); break;
+				} else {
+					echo returnGET($config, $link, $info); break;
+				}
+			}
+			catch (Exception $e)
+			{
+				echo "Error: ".$e->getMessage();
+			}
 		}
 	  case 'PUT':
 		echo returnPUT($config, $link, $info); break;
 	  case 'POST':
 	  {
 		try {
-			  if (!isset($key)) 
+			if (!isset($key)) 
 			{
 				echo returnPOST($config, $link, $info); break;
 			}
@@ -157,7 +165,12 @@ function returnGET($config, $mysqli, $info)
 			$sql = "select count(1) as count from (".$sql.") t";
 		}
 	}
-	$rowresult = PrepareExecSQL($mysqli,$sql,$sss,$param);	
+	echo $sql;
+	$rowresult = PrepareExecSQL($mysqli,$sql,$sss,$param);
+	
+	if (isset($config[$info["table"]]["afterselect"]) && function_exists($config[$info["table"]]["afterselect"])) {
+		$rowresult = call_user_func($config[$info["table"]]["afterselect"],$rowresult);
+	}	
 	$res = "";
 	if (!$rowresult) { // in case of empty result set
 		if (array_key_exists("selectarray", $config[$table]) && ($config[$table]["selectarray"] == true)) {
@@ -184,6 +197,9 @@ function returnPUT($config, $mysqli, $info)
 		http_response_code(403);
 		die('Error: Action not allowed');
 	}
+	if (isset($config[$info["table"]]["beforeupdate"]) && function_exists($config[$info["table"]]["beforeupdate"])) {
+		$info = call_user_func($config[$info["table"]]["beforeupdate"],$info);
+	}
 	$table = $info["table"];
 	$tablename = getTablename($config, $info["table"]);
 	$key = $info["key"];
@@ -203,6 +219,9 @@ function returnPUT($config, $mysqli, $info)
 	$sql = "update `$tablename` set $set  $where"; 
 
 	$result = PrepareExecSQL($mysqli,$sql,$struct['sss'], $struct['params']); 
+	if (isset($config[$info["table"]]["afterupdate"]) && function_exists($config[$info["table"]]["afterupdate"])) {
+		call_user_func($config[$info["table"]]["afterupdate"],$result,$info);
+	}	
 	http_response_code(200);
 	return $result['cnt'];
 }
@@ -235,7 +254,10 @@ function returnPOSTSearch($config, $mysqli, $info)
 	}
 	$where = "WHERE ".$struct["where"]; $sss = $struct["sss"]; $param = $struct["params"];
 	$sql = "select $fields from `$tablename` $where $limit"; 
-	$rowresult = PrepareExecSQL($mysqli,$sql,$sss,$param);	
+	$rowresult = PrepareExecSQL($mysqli,$sql,$sss,$param);		
+	if (isset($config[$info["table"]]["afterselect"]) && function_exists($config[$info["table"]]["afterselect"])) {
+		$rowresult = call_user_func($config[$info["table"]]["afterselect"],$rowresult);
+	}	
 	$res = '[';
 	for ($i=0;$i<count($rowresult);$i++) {
 		$res .= ($i>0?',':'').json_encode($rowresult[$i]);
@@ -250,6 +272,9 @@ function returnPOST($config, $mysqli, $info)
 	{
 		http_response_code(403);
 		die('Error: Action not allowed');
+	}	
+	if (isset($config[$info["table"]]["beforeinsert"]) && function_exists($config[$info["table"]]["beforeinsert"])) {
+		$info = call_user_func($config[$info["table"]]["beforeinsert"],$info);
 	}
 	$table = $info["table"];
 	$tablename = getTablename($config, $info["table"]);
@@ -261,6 +286,9 @@ function returnPOST($config, $mysqli, $info)
 	$table = $info["table"];
 
 	$result = PrepareExecSQL($mysqli,$sql,$struct['sss'], $struct['params']); 
+	if (isset($config[$info["table"]]["afterinsert"]) && function_exists($config[$info["table"]]["afterinsert"])) {
+		$result = call_user_func($config[$info["table"]]["afterinsert"],$result,$info);
+	}	
 	//return $result['cnt'];
 	http_response_code(200);
 	return $result;
@@ -273,6 +301,9 @@ function returnDELETE($config, $mysqli, $info)
 		http_response_code(403);
 		die('Error: Action not allowed');
 	}
+	if (isset($config[$info["table"]]["beforedelete"]) && function_exists($config[$info["table"]]["beforedelete"])) {
+		$info = call_user_func($config[$info["table"]]["beforedelete"],$info);
+	}
 	$table = $info["table"];
 	$tablename = getTablename($config, $info["table"]);
 	$key = $info["key"];
@@ -280,6 +311,9 @@ function returnDELETE($config, $mysqli, $info)
 	$sql = "Delete from `$tablename` where id=?"; 
 
 	$result = PrepareExecSQL($mysqli,$sql,'s',[$key]); 
+	if (isset($config[$info["table"]]["afterdelete"]) && function_exists($config[$info["table"]]["afterdelete"])) {
+		$result = call_user_func($config[$info["table"]]["afterdelete"],$result,$info);
+	}
 	return $result['cnt'];
 }
 
@@ -300,8 +334,11 @@ function returnDELETEWhere($config, $mysqli, $info)
 	$where = "WHERE ".$struct["where"]; $sss = $struct["sss"]; $param = $struct["params"];
 	$sql = "DELETE from `$tablename` $where"; 
 	//echo $sql;
-	$res = PrepareExecSQL($mysqli,$sql,$sss,$param);	
-	return $res; 
+	$result = PrepareExecSQL($mysqli,$sql,$sss,$param);	
+	if (isset($config[$info["table"]]["afterdelete"]) && function_exists($config[$info["table"]]["afterdelete"])) {
+		$result = call_user_func($config[$info["table"]]["afterdelete"],$result,$info);
+	}
+	return $result; 
 }
 
 function returnOPTIONS($config, $mysqli, $info)
