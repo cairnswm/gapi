@@ -165,7 +165,6 @@ function returnGET($config, $mysqli, $info)
 			$sql = "select count(1) as count from (".$sql.") t";
 		}
 	}
-	echo $sql;
 	$rowresult = PrepareExecSQL($mysqli,$sql,$sss,$param);
 	
 	if (isset($config[$info["table"]]["afterselect"]) && function_exists($config[$info["table"]]["afterselect"])) {
@@ -181,7 +180,6 @@ function returnGET($config, $mysqli, $info)
 		return $res;
 	}
 	// To allow use of views also check if there are multiple rows returned to define the array 
-	//var_dump($rowresult);
 	if (($rowresult) && (!$info["key"] || count($rowresult) > 1 || (isset($config[$table]["selectarray"])) && ($config[$table]["selectarray"] == true))) $res .= '[';
 	for ($i=0;$i<count($rowresult);$i++) {
 		$res .= ($i>0?',':'').json_encode($rowresult[$i]);

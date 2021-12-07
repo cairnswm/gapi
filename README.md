@@ -39,7 +39,7 @@ Once I got the basic library working I identified the following additional funct
 6. _Manage security using an Auth library and tokens (TODO)_
 7. _Create an array of fields that may be used in a search collection, eg so only indexed fields can be searched (TODO)_
 8. _Modifiy the documentation to be valid swagger format :O (TODO)_
-
+9. Triggers - before and after (Done)
 
 # Known issues
 
@@ -69,6 +69,7 @@ $config = Array(
     "user" => Array(
 					"key" => "id",
 					"select" => Array("id","username","fullname"),
+					"afterselect" => "functionName", <=== Creates a trigger that is called after any select passing the results, returns a modified results object 
 					"update" => Array("fullname"),
 					"delete" => false, <=== Prevent API from deleting
 					"create" => false  <=== Prevent API from creating records
@@ -101,6 +102,18 @@ PUT http://<server>/<project>/api.php/<tablename>/<id> <== creates new record - 
 DELETE http://<server>/<project>/api.php/<tablename>/<id> <== Deletes record based on id
 DELETE http://<server>/<project>/api.php/<tablename>/ <== Deletes record based on where collection
 ```
+
+# Triggers
+
+afterselect <== called after GET and search has retrieieved data, passes the result set and expects modified result set returned
+beforeinsert, afterinsert
+beforeupdate, afterupdate
+beforedelete, afterdelete
+
+before* <== called before action is taken, passes the details recieved by the api (eg Table and query params or post data), expects the same returned
+	can be used to do validation checks (eg does the id being referenced exist)
+after* <= called with detailes recieved by API and result of statement, no return value expected 
+	can be used for Cascade events
 
 # Search
 

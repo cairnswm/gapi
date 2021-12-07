@@ -3,7 +3,7 @@
 include_once "apicore.php";
 
 function afterSelect($results) {
-	var_dump($results);
+	// Result set returned and can be modified
 	$results[0]["message"] = "After Select";
 	return $results;
 }
