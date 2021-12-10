@@ -21,6 +21,7 @@ function Run($config, $mysqli = null)
 	
 	// get the HTTP method, path and body of the request
 	$method = $_SERVER['REQUEST_METHOD'];
+	var_dump($_SERVER["CONTENT_TYPE"]);
 	$input = getParameters($method);
 	$request = explode('/', trim($_SERVER['PATH_INFO'],'/'));
 	$key = null;
@@ -54,8 +55,9 @@ function Run($config, $mysqli = null)
 		{
 			try {
 				// Check if user is trying to get documentation or from an actual table
-				if ($info["table"] === "swagger") {
-					echo returnOPTIONS($config, $link, $info); break;
+				if ($info["key"] === "swagger") {
+					echo "Swagger";
+					echo returnSWAGGER($config, $link, $info); break;
 				} else {
 					echo returnGET($config, $link, $info); break;
 				}
@@ -94,7 +96,7 @@ function Run($config, $mysqli = null)
 		  echo returnDELETEWhere($config, $link, $info); break;
 	  }	  
 	  case 'OPTIONS':
-		echo returnOPTIONS($config, $link, $info); break;
+		echo returnSWAGGER($config, $link, $info); break;
 	}
 	 
 	// close mysql connection
@@ -339,7 +341,7 @@ function returnDELETEWhere($config, $mysqli, $info)
 	return $result; 
 }
 
-function returnOPTIONS($config, $mysqli, $info)
+function returnSWAGGER($config, $mysqli, $info)
 {
 	if (isset($config[$info["table"]]["options"]) && ($config[$info["table"]]["options"] == false))
 	{
@@ -437,15 +439,20 @@ function getParameters($method)
 	// PUT variables set in php://input - note the Content-Type must be correct (x-www-form-urlencoded)
 	// POST variables in $_POST
 	$input = null;
+	$contenttype = $_SERVER["CONTENT_TYPE"];
 	// Load Parameters into generic variable
 	switch ($method) {
 	case 'PUT':
 	case 'DELETE':
-		$put_data = file_get_contents('php://input');
-		parse_str($put_data, $post_vars);
+		$put_data = file_get_contents('php://input');		
+		if ($contenttype == "application/json") {
+			$post_vars = json_decode($put_data, true);
+			$input = $post_vars;
+		} else {
+			parse_str($put_data, $post_vars);
+		}
 		$input = $post_vars; break;
-    case 'POST':
-		$contenttype = $_SERVER["CONTENT_TYPE"];
+    case 'POST':		
 		// if application json content
 		if ($contenttype == "application/json")
 		{
@@ -478,6 +485,8 @@ function getSetValues($config, $mysqli, $info)
 	
 	if (isset($input))
 	{
+		echo "<hr/>INPUT: ";
+		var_dump($input);
 		// escape the columns and values from the input object
 		$columns = preg_replace('/[^a-z0-9_]+/i','',array_keys($input));
 		$values = array_map(function ($value) use ($mysqli) {
@@ -486,10 +495,16 @@ function getSetValues($config, $mysqli, $info)
 		},array_values($input));		
 					
 		// Decide which fieldset to use
-		$fieldlist = $config[$table]["create"]; 
+		if (isset($config[$table]["create"])) {
+			$fieldlist = $config[$table]["create"]; 
+		}
 		if ($method == "PUT") { $fieldlist = $config[$table]["update"];  }
 
 		// build the SET part of the SQL command
+		echo "<hr/>FIELDLIST: ";
+		var_dump($fieldlist);
+		echo "<hr/>COLUMNS: ";
+		var_dump($columns);
 		for ($i=0;$i<count($columns);$i++) {
 			if (in_array($columns[$i],$fieldlist))
 			{
@@ -499,9 +514,10 @@ function getSetValues($config, $mysqli, $info)
 			}
 		}
 		
+		
+		echo("SQL ".$set);
 		if ($set == '')
 		{
-			var_dump($input);
 			//http_response_code(304);
 			die("No values");
 		}
