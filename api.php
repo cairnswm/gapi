@@ -8,6 +8,16 @@ function afterSelect($results) {
 	return $results;
 }
 
+function beforeProfileUpdate($info) {
+	$fields = $info["fields"];
+	if (isset($fields["gender"])) {
+		if (!($fields["gender"] == "F" || $fields["gender"] == "M")) {
+			throw new Exception("Gender may only be M or F");
+		}
+	}
+	return $info;
+}
+
 $config = Array(
 	"database" => Array("server" => 'localhost', 
 						"username" => 'gapi', 
@@ -28,10 +38,11 @@ $config = Array(
 				),
     "profile" => Array(
 					"key" => "id",
-					"select" => Array("id","name","area","gender","status","avatar","message","tagline"),
-					"update" => Array("name","area","gender","status","avatar","message","tagline"),
+					"select" => Array("id","name","gender","status","avatar","message","tagline"),
+					"update" => Array("name","gender","status","avatar","message","tagline"),
+					"beforeupdate" => "beforeProfileUpdate",
 					"delete" => false,
-					"create" => Array("id","name","area","gender","status","message","tagline")
+					"create" => Array("id","name","gender","status","message","tagline")
 				),
 	"friends" => Array(
 					"tablename" => "friends",
