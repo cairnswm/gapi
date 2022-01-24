@@ -2,21 +2,7 @@
 
 include_once "apicore.php";
 
-function afterSelect($results) {
-	// Result set returned and can be modified
-	$results[0]["message"] = "After Select";
-	return $results;
-}
 
-function beforeProfileUpdate($info) {
-	$fields = $info["fields"];
-	if (isset($fields["gender"])) {
-		if (!($fields["gender"] == "F" || $fields["gender"] == "M")) {
-			throw new Exception("Gender may only be M or F");
-		}
-	}
-	return $info;
-}
 
 $config = Array(
 	"database" => Array("server" => 'localhost', 
@@ -55,4 +41,21 @@ $config = Array(
 );
 
 Run($config);
+
+// Define the before and after methods
+function afterSelect($results) {
+	// Result set returned and can be modified
+	$results[0]["message"] = "After Select";
+	return $results;
+}
+
+function beforeProfileUpdate($info) {
+	$fields = $info["fields"];
+	if (isset($fields["gender"])) {
+		if (!($fields["gender"] == "F" || $fields["gender"] == "M")) {
+			throw new Exception("Gender may only be M or F");
+		}
+	}
+	return $info;
+}
 ?>

@@ -240,7 +240,7 @@ function returnPOST($config, $mysqli, $info) {
 
 	$struct = getSetValues($config, $mysqli, $info);
 	$set = $struct['set'];
-	$sql = "insert into `$table` set $set"; 
+	$sql = "insert into `$tablename` set $set"; 
 	$table = $info["table"];
 
 	$result = PrepareExecSQL($mysqli,$sql,$struct['sss'], $struct['params']); 
@@ -372,6 +372,7 @@ function getTablename($config,$table) {
 	{ return $config[$table]["tablename"]; }
     return $table;
 }
+
 // Default key is "id" unless defined differently in config
 function getTableKey($config,$table) {
 	if (isset($config[$table]["key"]))

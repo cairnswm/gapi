@@ -35,7 +35,7 @@ Once I got the basic library working I identified the following additional funct
 2. Consider modifying DELETE to update bulk delete if a search collection is included (and no ID is sent) (Done)
 3. Records can be Deleted based on a search collection being sent instead of an id (See below for a seach collection format) (Done)
 4. _Bulk insert using a collection of records as part of POST (TODO)_
-5. _Bulk update using seach collection (TODO)_
+5. _Bulk update using search collection (TODO)_
 6. _Manage security using an Auth library and tokens (TODO)_
 7. _Create an array of fields that may be used in a search collection, eg so only indexed fields can be searched (TODO)_
 8. _Modifiy the documentation to be valid swagger format :O (TODO)_
@@ -112,7 +112,7 @@ beforedelete, afterdelete
 
 before* <== called before action is taken, passes the details recieved by the api (eg Table and query params or post data), expects the same returned
 	can be used to do validation checks (eg does the id being referenced exist)
-after* <= called with detailes recieved by API and result of statement, no return value expected 
+after* <= called with details recieved by API and result of statement, no return value expected 
 	can be used for Cascade events
 
 # Search
