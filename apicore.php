@@ -93,9 +93,27 @@ function returnGET($config, $mysqli, $info) {
 		http_response_code(401);
 		die('Error: Action not allowed');
 	}
-	$table = $info["table"];
-	$tablename = getTablename($config, $info["table"]);
-	$key = $info["key"];
+	if (array_key_exists("subkey",$info) && $info["subkey"] && $info["subkey"] != "count") {
+		
+		$table = $info["table"];
+		if (!array_key_exists("subkeys",$config[$table])) {
+			header($_SERVER['SERVER_PROTOCOL'] . ' 422 Unprocessable Entity', true, 422);
+			die("Action not allowed, child links not available");
+		}
+		$subkey =  $info["subkey"];
+		if (!array_key_exists($subkey,$config[$table]["subkeys"])) {
+			header($_SERVER['SERVER_PROTOCOL'] . ' 422 Unprocessable Entity', true, 422);
+			die("Action not allowed, sub table not available");
+		}
+		$tablename = getSubkeyTablename($config, $info["table"],$subkey);
+		$key = $info["key"];
+		$fieldlist = $config[$table]["subkeys"][$subkey]["select"];
+	} else {
+		$table = $info["table"];
+		$tablename = getTablename($config, $info["table"]);
+		$key = $info["key"];
+		$fieldlist = $config[$table]["select"];
+	}
 	// Check for Pagination  limit=20&offset=40
 	$limit = "";
 	if (isset($_GET["offset"])) { $limit .= $_GET["offset"]; };
@@ -108,17 +126,17 @@ function returnGET($config, $mysqli, $info) {
 		if ((isset($info["subkey"]) && $info["subkey"] == "count") || $info["key"] == "count" ) {
 			$fields = "count(1) as count";
 		} else {
-			$fields = implode(', ', $config[$table]["select"]);
+			$fields = implode(', ', $fieldlist);
 		}
 		$where = "";
-		if ($key) { 
+		if ($key && !isset($subkey)) {
 			if (is_numeric($key)) {
-				$where = " WHERE `".$config[$table]["key"]."`=?"; 
-				$sss = 's'; 
-				array_push($param,$key); 
-			}		
+				$where = " WHERE `".$config[$table]["key"]."`=?";
+				$sss = 's';
+				array_push($param,$key);
+			}
 		}
-		$sql = "select $fields from `$tablename` $where $limit"; 
+		$sql = "select $fields from `$tablename` $where $limit";
 	}	
 	else
 	// If ["select"] is not an array then assumed to be a select statement
@@ -371,6 +389,11 @@ function getTablename($config,$table) {
 	if (isset($config[$table]["tablename"]))
 	{ return $config[$table]["tablename"]; }
     return $table;
+}
+function getSubkeyTablename($config,$table,$subkey) {
+	if (isset($config[$table]["subkeys"][$subkey]["tablename"]))
+	{ return $config[$table]["subkeys"][$subkey]["tablename"]; }
+    return $subkey;
 }
 
 // Default key is "id" unless defined differently in config
