@@ -93,7 +93,7 @@ function returnGET($config, $mysqli, $info) {
 		http_response_code(401);
 		die('Error: Action not allowed');
 	}
-	if (array_key_exists("subkey",$info) && $info["subkey"] && $info["subkey"] != "count") {
+	if (array_key_exists("subkey", $info) && $info["subkey"] && $info["subkey"] != "count") {
 		
 		$table = $info["table"];
 		if (!array_key_exists("subkeys",$config[$table])) {
@@ -106,12 +106,16 @@ function returnGET($config, $mysqli, $info) {
 			die("Action not allowed, sub table not available");
 		}
 		$tablename = getSubkeyTablename($config, $info["table"],$subkey);
+		$tablekey = getSubkeyKey($config, $info["table"],$subkey);
+		$tconfig = $config[$table]["subkeys"][$subkey];
 		$key = $info["key"];
 		$fieldlist = $config[$table]["subkeys"][$subkey]["select"];
 	} else {
 		$table = $info["table"];
 		$tablename = getTablename($config, $info["table"]);
+		$tablekey = getKey($config, $info["table"]);
 		$key = $info["key"];
+		$tconfig = $config[$table];
 		$fieldlist = $config[$table]["select"];
 	}
 	// Check for Pagination  limit=20&offset=40
@@ -122,25 +126,21 @@ function returnGET($config, $mysqli, $info) {
 	$where = ''; $sss = ''; $param = [];
 
 	// If ["select"] is an array then this is a standard select from a table
-	if (is_array($config[$table]["select"])) {
+	if (is_array($tconfig["select"])) {
 		if ((isset($info["subkey"]) && $info["subkey"] == "count") || $info["key"] == "count" ) {
 			$fields = "count(1) as count";
 		} else {
 			$fields = implode(', ', $fieldlist);
 		}
 		$where = "";
-		if ($key && !isset($subkey)) {
-			if (is_numeric($key)) {
-				$where = " WHERE `".$config[$table]["key"]."`=?";
+		if ($key) {
+				$where = " WHERE `".$tablekey."`=?";
 				$sss = 's';
 				array_push($param,$key);
-			}
 		}
 		$sql = "select $fields from `$tablename` $where $limit";
-	}	
-	else
-	// If ["select"] is not an array then assumed to be a select statement
-	{
+	} else {
+		// If ["select"] is not an array then assumed to be a select statement
 		$where = "";
 		if (strpos($config[$table]["select"],"{".$config[$table]["key"]."}") != false) {
 			$sql = str_replace("{".$config[$table]["key"]."}","?",$config[$table]["select"]." $where $limit");
@@ -153,6 +153,7 @@ function returnGET($config, $mysqli, $info) {
 			$sql = "select count(1) as count from (".$sql.") t";
 		}
 	}
+	// echo $sql,"==========================";
 	$rowresult = PrepareExecSQL($mysqli,$sql,$sss,$param);
 	
 	if (isset($config[$info["table"]]["afterselect"]) && function_exists($config[$info["table"]]["afterselect"])) {
@@ -390,9 +391,19 @@ function getTablename($config,$table) {
 	{ return $config[$table]["tablename"]; }
     return $table;
 }
+function getKey($config,$table) {
+	if (isset($config[$table]["key"]))
+	{ return $config[$table]["key"]; }
+    return $table;
+}
 function getSubkeyTablename($config,$table,$subkey) {
 	if (isset($config[$table]["subkeys"][$subkey]["tablename"]))
 	{ return $config[$table]["subkeys"][$subkey]["tablename"]; }
+    return $subkey;
+}
+function getSubkeyKey($config,$table,$subkey) {
+	if (isset($config[$table]["subkeys"][$subkey]["key"]))
+	{ return $config[$table]["subkeys"][$subkey]["key"]; }
     return $subkey;
 }
 

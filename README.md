@@ -144,3 +144,10 @@ value: William, %GAPI%
 ```
 
 Sending a DELETE without an id in the path will execute a "delete .. where ..." using the same structure as for search
+
+
+## Sample Database included
+
+World Database:
+https://dev.mysql.com/doc/index-other.html
+
