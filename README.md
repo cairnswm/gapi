@@ -15,11 +15,11 @@ A RESTful API can also manage business logic. Simple business logic can added th
 When I created this PHP project the idea was to create an as simple as possible way of adding a REST API on top of any existing mySQL database. The original concept had the following goals:
 1. Create a standard REST API that can connect to any table in the database (Done)
 2. Make the API Configurable so through configuration the list of tables can be set, and the fields that can be seen, updated, deleted (Done)
-3. _Add Call backs for Pre/POST functionality (Allows additional security) (Done)_
+3. Add Call backs for Pre/POST functionality (Allows additional security) (Done)
 4. Auto Document the API with the correct Call (Needs to be redone)
 5. Modify Get to include Paging (Pagination: Done, use offset and limit)
 6. Add a Search option that does standard get with parameters. (Can be Post or Get)
-7. Modify Get to include Sorting option (TODO)
+7. _Modify Get to include Sorting option (TODO)_
 8. Use prepared statements to prevent SQL Injection (Done)
 
 # Demos
@@ -31,6 +31,7 @@ Create example Javascript files to demo the API (TODO)
 
 Once I got the basic library working I identified the following additional functionalities to add:
 1. Allow calls to load child objects as Collections within the JSON (Done)
+1.a. String Selects also support subkeys (Done)
 2. Consider modifying POST to update records as well if id is sent in the path (Done)
 2. Consider modifying DELETE to update bulk delete if a search collection is included (and no ID is sent) (Done)
 3. Records can be Deleted based on a search collection being sent instead of an id (See below for a seach collection format) (Done)
