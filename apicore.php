@@ -147,7 +147,12 @@ function returnGET($config, $mysqli, $info)
 	$limit = (strlen($limit) > 0 ? 'Limit ' . $limit : '');
 
 	if (isset($config[$info["table"]]["beforeselect"]) && function_exists($config[$info["table"]]["beforeselect"])) {
-		call_user_func($config[$info["table"]]["beforeselect"], $tconfig, $info);
+		$info = call_user_func($config[$info["table"]]["beforeselect"], $tconfig, $info);
+	}
+	if (isset($info["where"])) {
+		$defaultwhere = $info["where"];
+		$defaultsss = $info["wheresss"];
+		$defaultparams = $info['whereparams'];
 	}
 	$where = $defaultwhere;
 	$sss = $defaultsss;
@@ -221,7 +226,6 @@ function returnPUT($config, $mysqli, $info)
 	if (isset($config[$info["table"]]["beforeupdate"]) && function_exists($config[$info["table"]]["beforeupdate"])) {
 		$info = call_user_func($config[$info["table"]]["beforeupdate"], $info);
 	}
-	$table = $info["table"];
 	$tablename = getTablename($config, $info["table"]);
 	$key = $info["key"];
 
@@ -239,7 +243,7 @@ function returnPUT($config, $mysqli, $info)
 		$wheresss = $info["wheresss"];
 		$paramwhere = $info['whereparams'];
 	} else {
-		$where = "";	
+		$where = "";
 	}
 	if ($key) {
 		if (strlen(($where) > 0)) {
@@ -274,7 +278,6 @@ function returnPOSTSearch($config, $mysqli, $info)
 	}
 	$table = $info["table"];
 	$tablename = getTablename($config, $info["table"]);
-	$key = $info["key"];
 
 	// User is doing a search
 	$struct = getSearchValues($config, $mysqli, $info);
@@ -286,11 +289,9 @@ function returnPOSTSearch($config, $mysqli, $info)
 		if (isset($_GET["offset"])) {
 			$limit .= $_GET["offset"];
 		}
-		;
 		if (isset($_GET["limit"])) {
 			$limit .= (strlen($limit) > 0 ? ',' : '') . $_GET["limit"];
 		}
-		;
 		$limit = (strlen($limit) > 0 ? 'Limit ' . $limit : '');
 		$fields = implode(', ', $config[$table]["select"]);
 	}
@@ -335,7 +336,7 @@ function returnPOST($config, $mysqli, $info)
 	$sql = "insert into `$tablename` set $set";
 	$table = $info["table"];
 
-	echo $sql."\n";
+	// echo $sql."\n";
 
 	$result = PrepareExecSQL($mysqli, $sql, $struct['sss'], $struct['params']);
 	if (isset($config[$info["table"]]["afterinsert"]) && function_exists($config[$info["table"]]["afterinsert"])) {
@@ -360,8 +361,8 @@ function returnDELETE($config, $mysqli, $info)
 
 	if (isset($info["where"])) {
 		$where = $info["where"];
-		$sss = $info["sss"];
-		$param = $info['params'];
+		$sss = $info["wheresss"];
+		$param = $info['whereparams'];
 	} else {
 		$where = "";
 		$sss = "";

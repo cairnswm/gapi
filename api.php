@@ -67,12 +67,15 @@ function beforeSelectCountry($config, $info)
 {
 	// use before select to set default values to limit rows based on tenant values
 	global$defaultwhere, $defaultparams, $defaultsss;
-	$defaultwhere = "continent=?";
-	$defaultsss = "s";
-	$defaultparams = ["Middle Earth"];
+	// $defaultwhere = "continent=?";
+	// $defaultsss = "s";
+	// $defaultparams = ["Middle Earth"];
+	$info["where"] = "continent=?";
+	$info["wheresss"] = "s";
+	$info["whereparams"] = array("Middle Earth");
 	// set the default where clause values
 	// Allows for support Tenancy queries etc
-	return $config;
+	return $info;
 }
 // Define the before and after methods
 function afterSelectCountry($results)
@@ -108,8 +111,8 @@ function beforeDeleteCountry($info)
 	// var_dump($info);
 	// use beforedelete to set additional criteria before delete
 	$info["where"] = "editedby=? and continent=?";
-	$info["sss"] = "ss";
-	$info["params"] = array("william","Middle Earth");
+	$info["wheresss"] = "ss";
+	$info["whereparams"] = array("william","Middle Earth");
 	return $info;
 }
 
