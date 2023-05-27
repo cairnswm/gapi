@@ -147,8 +147,56 @@ value: William, %GAPI%
 Sending a DELETE without an id in the path will execute a "delete .. where ..." using the same structure as for search
 
 
+## Tenancy
+
+use beforeSelect option to set multitenancy parameters
+
+```
+function beforeSelect($config, $info)
+{
+	global$defaultwhere, $defaultparams, $defaultsss;
+	$defaultwhere = "1=?";
+	$defaultsss = "s";
+	$defaultparams = ["1"];
+	// set the default where clause values
+	// Allows for support Tenancy queries etc
+	return $config;
+}
+```
+
 ## Sample Database included
 
 World Database:
 https://dev.mysql.com/doc/index-other.html
 
+## Suggestions
+
+1. Change the Config to allow more options
+```
+"person" => array(
+	"tablename" => "user",
+	"key" => "id",
+	"select" = array(
+		"fields" => array("id","name"),
+		"before" => "beforeSelect",  // Can be used to validate user authorization
+		"after" => "afterSelect",
+		"where" => "tenant_id=?",
+		"sss" => "s",
+		"params" => [$tenant_id]
+	)
+)
+```
+
+## Trigger functions
+
+- beforeSelect($config, $info)
+- afterSelect($result);
+
+- beforeUpdate($info);
+- afterUpdate($result, $info);
+
+- beforeInsert($info);
+- afterInsert($result, $info);
+
+- beforeDelete($info);
+- afterDelete($result, $info);
