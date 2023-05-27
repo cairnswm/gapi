@@ -201,7 +201,7 @@ function returnGET($config, $mysqli, $info)
 		}
 		return $res;
 	}
-	// To allow use of views also check if there are multiple rows returned to define the array 
+	// To allow use of views also check if there are multiple rows returned to define the array
 	if (($rowresult) && (!$info["key"] || count($rowresult) > 1 || (isset($config[$table]["selectarray"])) && ($config[$table]["selectarray"] == true)))
 		$res .= '[';
 	for ($i = 0; $i < count($rowresult); $i++) {
@@ -326,7 +326,6 @@ function returnDELETE($config, $mysqli, $info)
 	if (isset($config[$info["table"]]["beforedelete"]) && function_exists($config[$info["table"]]["beforedelete"])) {
 		$info = call_user_func($config[$info["table"]]["beforedelete"], $info);
 	}
-	$table = $info["table"];
 	$tablename = getTablename($config, $info["table"]);
 	$key = $info["key"];
 
@@ -346,7 +345,6 @@ function returnDELETEWhere($config, $mysqli, $info)
 		die(ACTIONNOTALLOWED);
 	}
 
-	$table = $info["table"];
 	$tablename = getTablename($config, $info["table"]);
 
 	// User is doing a search
@@ -362,21 +360,6 @@ function returnDELETEWhere($config, $mysqli, $info)
 		$result = call_user_func($config[$info["table"]]["afterdelete"], $result, $info);
 	}
 	return $result;
-}
-
-function returnSWAGGER($config, $mysqli, $info)
-{
-	if (isset($config[$info["table"]]["options"]) && ($config[$info["table"]]["options"] == false)) {
-		http_response_code(403);
-		die(ACTIONNOTALLOWED);
-	}
-	$table = $info["table"];
-	$tablename = getTablename($config, $info["table"]);
-
-	$options = "";
-	include_once "gapi_document.php";
-	$options = gapi_swagger($config, $mysqli, $info);
-	return $options;
 }
 
 function ExecSQL($link, $sql)
@@ -413,16 +396,16 @@ function db_query($dbconn, $sql, $params_types, $params)
 				$columns_vars[] = &${$field->name};
 			}
 			call_user_func_array('mysqli_stmt_bind_result', array_merge(array($stmt), $columns_vars));
-			$return_array = array();
+			$returnarray = array();
 			while (mysqli_stmt_fetch($stmt)) {
 				$row = array();
 				foreach ($columns as $col) {
 					$row[$col] = ${$col};
 				}
-				$return_array[] = $row;
+				$returnarray[] = $row;
 			}
 
-			return $return_array;
+			return $returnarray;
 		} // end query_type SELECT
 		else if ('INSE' == $query_type) {
 			return mysqli_insert_id($dbconn);
@@ -433,8 +416,7 @@ function db_query($dbconn, $sql, $params_types, $params)
 
 function PrepareExecSQL($link, $sql, $pars = '', $params = [])
 {
-	$result = db_query($link, $sql, $pars, $params);
-	return $result;
+	return db_query($link, $sql, $pars, $params);
 }
 
 // Get tablename from config if defined
@@ -477,7 +459,7 @@ function getTableKey($config, $table)
 	return "id";
 }
 
-// Load POST/PUT parameters into common structure 
+// Load POST/PUT parameters into common structure
 function getParameters($method)
 {
 	// PUT variables set in php://input - note the Content-Type must be correct (x-www-form-urlencoded)
@@ -493,20 +475,19 @@ function getParameters($method)
 		case 'DELETE':
 			$put_data = file_get_contents('php://input');
 			if ($contenttype == "application/json") {
-				$post_vars = json_decode($put_data, true);
-				$input = $post_vars;
+				$postvars = json_decode($put_data, true);
 			} else {
-				parse_str($put_data, $post_vars);
+				parse_str($put_data, $postvars);
 			}
-			$input = $post_vars;
+			$input = $postvars;
 			break;
 		case 'POST':
 			// if application json content
 			if ($contenttype == "application/json") {
 				$put_data = file_get_contents('php://input');
-				//parse_str($put_data, $post_vars);
-				$post_vars = json_decode($put_data, true);
-				$input = $post_vars;
+				//parse_str($put_data, $postvars);
+				$postvars = json_decode($put_data, true);
+				$input = $postvars;
 			} else // if form data
 			{
 				$input = $_POST;
@@ -568,8 +549,6 @@ function getSetValues($config, $mysqli, $info)
 function getSearchValues($config, $mysqli, $info)
 {
 	$input = $info["fields"];
-	$table = $info["table"];
-	$method = $info["method"];
 	$where = '';
 	$pars = '';
 	$params = [];
