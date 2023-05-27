@@ -1,9 +1,6 @@
 <?php
-
 include_once "config.php";
 include_once "apicore.php";
-
-
 
 $config = array(
 	"database" => $config,
@@ -11,11 +8,12 @@ $config = array(
 		"key" => "code",
 		"select" => array("code", "name", "continent", "region", "surfacearea", "indepyear", "population", "lifeexpectancy",
 						 "gnp", "gnpold", "localname", "governmentform", "headofstate", "capital", "code2"),
-		"create" => array("code", "name", "continent", "region", "surfacearea", "indepyear", "population", "lifeexpectancy", 
+		"create" => array("code", "name", "continent", "region", "surfacearea", "indepyear", "population", "lifeexpectancy",
 						"gnp", "gnpold", "localname", "governmentform", "headofstate", "capital", "code2"),
-		"update" => array("code", "name", "continent", "region", "surfacearea", "indepyear", "population", "lifeexpectancy", 
+		"update" => array("code", "name", "continent", "region", "surfacearea", "indepyear", "population", "lifeexpectancy",
 						"gnp", "gnpold", "localname", "governmentform", "headofstate", "capital", "code2"),
 		"delete" => true,
+		"beforeselect" => "beforeSelect",
 		"afterselect" => "afterSelect",
 		"subkeys" => array(
 			"city" => array(
@@ -62,6 +60,16 @@ $config = array(
 
 Run($config);
 
+function beforeSelect($config, $info)
+{
+	global$defaultwhere, $defaultparams, $defaultsss;
+	$defaultwhere = "1=?";
+	$defaultsss = "s";
+	$defaultparams = ["1"];
+	// set the default where clause values
+	// Allows for support Tenancy queries etc
+	return $config;
+}
 // Define the before and after methods
 function afterSelect($results)
 {
