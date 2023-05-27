@@ -7,14 +7,17 @@ $config = array(
 	"country" => array(
 		"key" => "code",
 		"select" => array("code", "name", "continent", "region", "surfacearea", "indepyear", "population", "lifeexpectancy",
-						 "gnp", "gnpold", "localname", "governmentform", "headofstate", "capital", "code2"),
-		"create" => array("code", "name", "continent", "region", "surfacearea", "indepyear", "population", "lifeexpectancy",
-						"gnp", "gnpold", "localname", "governmentform", "headofstate", "capital", "code2"),
-		"update" => array("code", "name", "continent", "region", "surfacearea", "indepyear", "population", "lifeexpectancy",
-						"gnp", "gnpold", "localname", "governmentform", "headofstate", "capital", "code2"),
+						 "gnp", "gnpold", "localname", "governmentform", "headofstate", "capital", "code2","comment"),
+		"create" => array("code", "name", "region", "surfacearea", "indepyear", "population", "lifeexpectancy",
+						"gnp", "gnpold", "localname", "governmentform", "headofstate", "capital", "code2","comment"),
+		"update" => array("name", "region", "surfacearea", "indepyear", "population", "lifeexpectancy",
+						"gnp", "gnpold", "localname", "governmentform", "headofstate", "capital", "code2","comment"),
 		"delete" => true,
-		"beforeselect" => "beforeSelect",
-		"afterselect" => "afterSelect",
+		"beforeselect" => "beforeSelectCountry",
+		"afterselect" => "afterSelectCountry",
+		"beforeupdate" => "beforeUpdateCountry",
+		"beforeinsert" => "beforeInsertCountry",
+		"beforedelete" => "beforeDeleteCountry",
 		"subkeys" => array(
 			"city" => array(
 				"key" => "countrycode",
@@ -60,32 +63,54 @@ $config = array(
 
 Run($config);
 
-function beforeSelect($config, $info)
+function beforeSelectCountry($config, $info)
 {
+	// use before select to set default values to limit rows based on tenant values
 	global$defaultwhere, $defaultparams, $defaultsss;
-	$defaultwhere = "1=?";
+	$defaultwhere = "continent=?";
 	$defaultsss = "s";
-	$defaultparams = ["1"];
+	$defaultparams = ["Middle Earth"];
 	// set the default where clause values
 	// Allows for support Tenancy queries etc
 	return $config;
 }
 // Define the before and after methods
-function afterSelect($results)
+function afterSelectCountry($results)
 {
 	// Result set returned and can be modified
 	$results[0]["message"] = "After Select";
 	return $results;
 }
 
-function beforeProfileUpdate($info)
+function beforeUpdateCountry($info)
 {
-	$fields = $info["fields"];
-	if (isset($fields["gender"])) {
-		if (!($fields["gender"] == "F" || $fields["gender"] == "M")) {
-			throw new Exception("Gender may only be M or F");
-		}
-	}
+	// use before update to set additional criteria before update
+	$info["set"] = array("editedby");
+	$info["sss"] = "s";
+	$info["params"] = array("william");
+	$info["where"] = "continent=?";
+	$info["wheresss"] = "s";
+	$info["whereparams"] = array("Middle Earth");
 	return $info;
 }
+
+function beforeInsertCountry($info)
+{
+	// use before insert to set default values
+	$info["set"] = array("editedby","continent");
+	$info["sss"] = "ss";
+	$info["params"] = array("william","Middle Earth");
+	return $info;
+}
+
+function beforeDeleteCountry($info)
+{
+	// var_dump($info);
+	// use beforedelete to set additional criteria before delete
+	$info["where"] = "editedby=? and continent=?";
+	$info["sss"] = "ss";
+	$info["params"] = array("william","Middle Earth");
+	return $info;
+}
+
 ?>

@@ -226,24 +226,44 @@ function returnPUT($config, $mysqli, $info)
 	$key = $info["key"];
 
 	$struct = getSetValues($config, $mysqli, $info);
-	$set = $struct['set'];
-	$where = "";
-	if ($key) {
-		if (is_numeric($key)) {
-			$where = " WHERE `" . $config[$table]["key"] . "`=?";
-			$struct['sss'] .= 's';
-			array_push($struct['params'], $key);
-		}
+
+	$set = "";
+	foreach ($struct['set'] as $value) {
+		if (strlen($set) > 0)
+			$set .= ",";
+		$set .= " `" . $value . "`=?";
 	}
 
-	$sql = "update `$tablename` set $set  $where";
+	if (isset($info["where"])) {
+		$where = $info["where"];
+		$wheresss = $info["wheresss"];
+		$paramwhere = $info['whereparams'];
+	} else {
+		$where = "";	
+	}
+	if ($key) {
+		if (strlen(($where) > 0)) {
+			$where .= " and ";
+		}
+		$where .= " `" . $config[$info["table"]]["key"] . "`=?";
+		$wheresss .= 's';
+		array_push($paramwhere, $key);
+	}
 
-	$result = PrepareExecSQL($mysqli, $sql, $struct['sss'], $struct['params']);
+	$sql = "update `$tablename` set $set WHERE $where";
+	$param = array_merge($struct["params"], $paramwhere);
+	$sss = $struct["sss"] . $wheresss;
+
+	// echo $sql."\n";
+	// echo "SSS:".$sss."\n";
+	// var_dump($param);
+
+	$result = PrepareExecSQL($mysqli, $sql, $sss, $param);
 	if (isset($config[$info["table"]]["afterupdate"]) && function_exists($config[$info["table"]]["afterupdate"])) {
 		call_user_func($config[$info["table"]]["afterupdate"], $result, $info);
 	}
 	http_response_code(200);
-	return $result['cnt'];
+	return $result;
 }
 
 function returnPOSTSearch($config, $mysqli, $info)
@@ -304,9 +324,18 @@ function returnPOST($config, $mysqli, $info)
 	$key = $info["key"];
 
 	$struct = getSetValues($config, $mysqli, $info);
-	$set = $struct['set'];
+	$set = "";
+	foreach ($struct['set'] as $value) {
+		if (strlen($set) > 0) {
+			$set .= ",";
+		}
+		$set .= " `" . $value . "`=?";
+	}
+
 	$sql = "insert into `$tablename` set $set";
 	$table = $info["table"];
+
+	echo $sql."\n";
 
 	$result = PrepareExecSQL($mysqli, $sql, $struct['sss'], $struct['params']);
 	if (isset($config[$info["table"]]["afterinsert"]) && function_exists($config[$info["table"]]["afterinsert"])) {
@@ -329,13 +358,32 @@ function returnDELETE($config, $mysqli, $info)
 	$tablename = getTablename($config, $info["table"]);
 	$key = $info["key"];
 
-	$sql = "Delete from `$tablename` where id=?";
-
-	$result = PrepareExecSQL($mysqli, $sql, 's', [$key]);
-	if (isset($config[$info["table"]]["afterdelete"]) && function_exists($config[$info["table"]]["afterdelete"])) {
-		$result = call_user_func($config[$info["table"]]["afterdelete"], $result, $info);
+	if (isset($info["where"])) {
+		$where = $info["where"];
+		$sss = $info["sss"];
+		$param = $info['params'];
+	} else {
+		$where = "";
+		$sss = "";
+		$param = [];	
 	}
-	return $result['cnt'];
+	if ($key) {
+		if (strlen(($where) > 0)) {
+			$where .= " and ";
+		}
+		$where .= " `" . $config[$info["table"]]["key"] . "`=?";
+		$sss .= 's';
+		array_push($param, $key);
+	}
+
+	$sql = "delete from `$tablename` WHERE $where";
+
+	$result = PrepareExecSQL($mysqli, $sql, $sss, $param);
+	if (isset($config[$info["table"]]["afterupdate"]) && function_exists($config[$info["table"]]["afterupdate"])) {
+		call_user_func($config[$info["table"]]["afterupdate"], $result, $info);
+	}
+	http_response_code(200);
+	return $result;
 }
 
 function returnDELETEWhere($config, $mysqli, $info)
@@ -506,9 +554,15 @@ function getSetValues($config, $mysqli, $info)
 	$input = $info["fields"];
 	$table = $info["table"];
 	$method = $info["method"];
-	$set = '';
-	$pars = '';
-	$params = [];
+	if (isset($info["set"])) {
+		$set = $info["set"];
+		$pars = $info["sss"];
+		$params = $info["params"];
+	} else {
+		$set = [];
+		$pars = '';
+		$params = [];
+	}
 
 	if (isset($input)) {
 		echo "<hr/>INPUT: ";
@@ -531,7 +585,7 @@ function getSetValues($config, $mysqli, $info)
 		// build the SET part of the SQL command
 		for ($i = 0; $i < count($columns); $i++) {
 			if (in_array($columns[$i], $fieldlist)) {
-				$set .= (strlen($set) > 0 ? ',' : '') . '`' . $columns[$i] . '`=?';
+				array_push($set, $columns[$i]);
 				$pars .= 's';
 				array_push($params, $values[$i]);
 			}
