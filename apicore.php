@@ -194,26 +194,19 @@ function returnGET($config, $mysqli, $info)
 	// echo $sql,"==========================";
 	$rowresult = PrepareExecSQL($mysqli, $sql, $sss, $param);
 
-	if (isset($config[$info["table"]]["afterselect"]) && function_exists($config[$info["table"]]["afterselect"])) {
+	if (!isset($key)) {
+		echo "No Key";
+		var_dump($rowresult);
+		if (!is_array($rowresult)) {
+			$rowresult = array($rowresult);
+		}
+	}
+
+	if (isset($config[$table]["afterselect"]) && function_exists($config[$table]["afterselect"])) {
 		$rowresult = call_user_func($config[$info["table"]]["afterselect"], $rowresult);
 	}
-	$res = "";
-	if (!$rowresult) { // in case of empty result set
-		if (array_key_exists("selectarray", $config[$table]) && ($config[$table]["selectarray"] == true)) {
-			$res = [];
-		} else {
-			$res = "";
-		}
-		return $res;
-	}
-	// To allow use of views also check if there are multiple rows returned to define the array
-	if (($rowresult) && (!$info["key"] || count($rowresult) > 1 || (isset($config[$table]["selectarray"])) && ($config[$table]["selectarray"] == true)))
-		$res .= '[';
-	for ($i = 0; $i < count($rowresult); $i++) {
-		$res .= ($i > 0 ? ',' : '') . json_encode($rowresult[$i]);
-	}
-	if (!$info["key"] || count($rowresult) > 1 || (isset($config[$table]["selectarray"]) && ($config[$table]["selectarray"] == true)))
-		$res .= ']';
+	
+	$res = json_encode($rowresult);
 	return $res;
 }
 
@@ -566,7 +559,6 @@ function getSetValues($config, $mysqli, $info)
 	}
 
 	if (isset($input)) {
-		echo "<hr/>INPUT: ";
 		// escape the columns and values from the input object
 		$columns = preg_replace('/[^a-z0-9_]+/i', '', array_keys($input));
 		$values = array_map(function ($value) use ($mysqli) {
