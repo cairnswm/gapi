@@ -193,6 +193,11 @@ function returnGET($config, $mysqli, $info)
 
 	// echo $sql,"==========================";
 	$rowresult = PrepareExecSQL($mysqli, $sql, $sss, $param);
+	
+	if ($rowresult == null) {
+		http_response_code(404);
+		die("Not found");
+	}
 
 	if (!isset($key)) {
 		echo "No Key";
@@ -265,7 +270,7 @@ function returnPUT($config, $mysqli, $info)
 
 function returnPOSTSearch($config, $mysqli, $info)
 {
-	if ($config[$info["table"]]["create"] == false) {
+	if (!isset($config[$info["table"]]["create"]) || $config[$info["table"]]["create"] == false) {
 		http_response_code(403);
 		die(ACTIONNOTALLOWED);
 	}
