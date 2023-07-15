@@ -606,24 +606,28 @@ function getSearchValues($config, $mysqli, $info)
 	$params = [];
 
 	if (isset($input)) {
-		// escape the columns and values from the input object
-		$columns = preg_replace('/[^a-z0-9_]+/i', '', array_keys($input));
-		$values = array_map(function ($value) use ($mysqli) {
-			if ($value === null)
-				return null;
-			return mysqli_real_escape_string($mysqli, (string) $value);
-		}, array_values($input));
 
 		// Extract each set of values into arrays
-		$colarr = explode(',', $values[array_search('field', $columns)]);
-		$oparr = explode(',', $values[array_search('op', $columns)]);
-		$valarr = explode(',', $values[array_search('value', $columns)]);
+		$colarr = $input["field"];
+		$oparr = $input["op"];
+		$valarr =$input["value"];
+
 
 		// Build the fields
 		for ($i = 0; $i < count($colarr); $i++) {
-			$where .= (strlen($where) > 0 ? ' and ' : '') . '`' . trim($colarr[$i]) . '`' . trim($oparr[$i]) . '?';
-			$pars .= 's';
-			array_push($params, trim($valarr[$i]));
+			if (is_array($valarr[$i])) {
+				$whereps = "";
+				for ($j = 0; $j < count($valarr[$i]); $j++) {
+					$whereps .= (strlen($whereps) > 0 ? ' , ' : '') . '?';
+					$pars .= 's';
+					array_push($params, $valarr[$i][$j]);
+				}
+				$where .= (strlen($where) > 0 ? ' and ' : '') . '`' . trim($colarr[$i]) . '`' . trim($oparr[$i])  . ' (' . $whereps . ')';
+			} else {
+				$where .= (strlen($where) > 0 ? ' and ' : '') . '`' . trim($colarr[$i]) . '`' . trim($oparr[$i]) . '?';
+				$pars .= 's';
+				array_push($params, $valarr[$i]);
+			}
 		}
 
 		if ($where == '') { // If no where clause then error

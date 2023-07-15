@@ -128,20 +128,15 @@ after* <= called with details recieved by API and result of statement, no return
 Searches are done using Post:
 
 ```HTTP
-POST http://<server>/<project>/api.php/<tablename>/search <== execute search - note fields to be included in formdata -- All fields added as AND
+POST http://<server>/<project>/api.php/<tablename>/search <== execute search - note fields to be included in json body -- All fields added as AND
 ```
 
-Fields to be included in formData are:
-field: Comma seperated list of field names
-op: Comma separated list of SQL operations (no validation is made on the op)
-value: Comma separated list of values to be searched for
-
-eg - Searches for all messages from user William that contain GAPI in them
-
-```
-field: username, message
-op: =,like
-value: William, %GAPI%
+```json
+{
+"field": ["user_id", "description"],
+"op": ["in","like"],
+"value": [[14,27], "%test%"]
+}
 ```
 
 Sending a DELETE without an id in the path will execute a "delete .. where ..." using the same structure as for search
