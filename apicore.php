@@ -94,6 +94,7 @@ function Run($config, $mysqli = null)
 $defaultwhere = "";
 $defaultsss = "";
 $defaultparams = [];
+$defaultorder = "";
 
 // Result for GET method
 // Includes by ID and All select
@@ -103,7 +104,11 @@ $defaultparams = [];
 // url: /<tablename>/<id>/count returns count for id
 function returnGET($config, $mysqli, $info)
 {
-	global $defaultwhere, $defaultsss, $defaultparams;
+	global $defaultwhere, $defaultsss, $defaultparams, $defaultorder;
+
+	if (isset($config[$info["table"]]["order"])) {
+		$defaultorder = $config[$info["table"]]["order"];
+	}
 
 	if ($config[$info["table"]]["select"] == false) {
 		http_response_code(401);
@@ -116,7 +121,10 @@ function returnGET($config, $mysqli, $info)
 			header($_SERVER['SERVER_PROTOCOL'] . UNPROCESSABLEENTITY, true, 422);
 			die("Action not allowed, child links not available");
 		}
-		$subkey = $info["subkey"];
+		$subkey = $info["key"];
+		var_dump($info);
+		echo "Subkey:", $subkey;
+		var_dump($config[$table]["subkeys"]);
 		if (!array_key_exists($subkey, $config[$table]["subkeys"])) {
 			header($_SERVER['SERVER_PROTOCOL'] . UNPROCESSABLEENTITY, true, 422);
 			die("Action not allowed, sub table not available");
@@ -139,11 +147,9 @@ function returnGET($config, $mysqli, $info)
 	if (isset($_GET["offset"])) {
 		$limit .= $_GET["offset"];
 	}
-	;
 	if (isset($_GET["limit"])) {
 		$limit .= (strlen($limit) > 0 ? ',' : '') . $_GET["limit"];
-	}
-	;
+	};
 	$limit = (strlen($limit) > 0 ? 'Limit ' . $limit : '');
 
 	if (isset($config[$info["table"]]["beforeselect"]) && function_exists($config[$info["table"]]["beforeselect"])) {
@@ -154,12 +160,17 @@ function returnGET($config, $mysqli, $info)
 		$defaultsss = $info["wheresss"];
 		$defaultparams = $info['whereparams'];
 	}
+	if (isset($info["order"])) {
+		$defaultorder = $info['order'];
+	}
 	$where = $defaultwhere;
 	$sss = $defaultsss;
 	$param = $defaultparams;
+	$order = $defaultorder;
 
 	if (is_array($tconfig["select"])) {
 		// If ["select"] is an array then this is a standard select from a table
+		// use {<key>"} to replace with key value
 		if ((isset($info["subkey"]) && $info["subkey"] == "count") || $info["key"] == "count") {
 			$fields = "count(1) as count";
 		} else {
@@ -176,7 +187,11 @@ function returnGET($config, $mysqli, $info)
 		if (strlen($where) > 0) {
 			$where = "WHERE " . $where;
 		}
-		$sql = "select $fields from `$tablename` $where $limit";
+
+		if (strlen($order) > 0) {
+			$order = "ORDER BY " . $order;
+		}
+		$sql = "select $fields from `$tablename` $where $limit $order";
 	} else {
 		// If ["select"] is not an array then assumed to be a select statement
 		if (strpos($config[$table]["select"], "{" . $config[$table]["key"] . "}") != false) {
@@ -192,16 +207,18 @@ function returnGET($config, $mysqli, $info)
 	}
 
 	// echo $sql,"==========================";
-	$rowresult = PrepareExecSQL($mysqli, $sql, $sss, $param);
-	
+	// echo $defaultorder,"==========================";
+	// echo json_encode($param);
+	// echo "==========================";
+
+	$rowresult = PrepareExecSQL($sql, $sss, $param);
+
 	if ($rowresult == null) {
-		http_response_code(404);
-		die("Not found");
+		http_response_code(200);
+		die("[]");
 	}
 
 	if (!isset($key)) {
-		echo "No Key";
-		var_dump($rowresult);
 		if (!is_array($rowresult)) {
 			$rowresult = array($rowresult);
 		}
@@ -210,7 +227,7 @@ function returnGET($config, $mysqli, $info)
 	if (isset($config[$table]["afterselect"]) && function_exists($config[$table]["afterselect"])) {
 		$rowresult = call_user_func($config[$info["table"]]["afterselect"], $rowresult);
 	}
-	
+
 	$res = json_encode($rowresult);
 	return $res;
 }
@@ -226,13 +243,21 @@ function returnPUT($config, $mysqli, $info)
 	}
 	$tablename = getTablename($config, $info["table"]);
 	$key = $info["key"];
+	if (!isset($key)) {
+		http_response_code(200);
+		die('{"error":"No key"}');
+	}
 
 	$struct = getSetValues($config, $mysqli, $info);
+	$where = "";
+	$wheresss = "";
+	$paramwhere = [];
 
 	$set = "";
 	foreach ($struct['set'] as $value) {
-		if (strlen($set) > 0)
+		if (strlen($set) > 0) {
 			$set .= ",";
+		}
 		$set .= " `" . $value . "`=?";
 	}
 
@@ -256,11 +281,7 @@ function returnPUT($config, $mysqli, $info)
 	$param = array_merge($struct["params"], $paramwhere);
 	$sss = $struct["sss"] . $wheresss;
 
-	// echo $sql."\n";
-	// echo "SSS:".$sss."\n";
-	// var_dump($param);
-
-	$result = PrepareExecSQL($mysqli, $sql, $sss, $param);
+	$result = PrepareExecSQL($sql, $sss, $param);
 	if (isset($config[$info["table"]]["afterupdate"]) && function_exists($config[$info["table"]]["afterupdate"])) {
 		call_user_func($config[$info["table"]]["afterupdate"], $result, $info);
 	}
@@ -317,6 +338,7 @@ function returnPOST($config, $mysqli, $info)
 	}
 	if (isset($config[$info["table"]]["beforeinsert"]) && function_exists($config[$info["table"]]["beforeinsert"])) {
 		$info = call_user_func($config[$info["table"]]["beforeinsert"], $info);
+		// echo json_encode($info);
 	}
 	$table = $info["table"];
 	$tablename = getTablename($config, $info["table"]);
@@ -336,11 +358,14 @@ function returnPOST($config, $mysqli, $info)
 
 	// echo $sql."\n";
 
-	$result = PrepareExecSQL($mysqli, $sql, $struct['sss'], $struct['params']);
+	$result = PrepareExecSQL($sql, $struct['sss'], $struct['params']);
 	if (isset($config[$info["table"]]["afterinsert"]) && function_exists($config[$info["table"]]["afterinsert"])) {
-		$result = call_user_func($config[$info["table"]]["afterinsert"], $result, $info);
+		try {
+			$result = call_user_func($config[$info["table"]]["afterinsert"], $result, $info);
+		} catch (Exception $e) {
+			die($e->getMessage());
+		}
 	}
-	//return $result['cnt'];
 	http_response_code(200);
 	return $result;
 }
@@ -364,7 +389,7 @@ function returnDELETE($config, $mysqli, $info)
 	} else {
 		$where = "";
 		$sss = "";
-		$param = [];	
+		$param = [];
 	}
 	if ($key) {
 		if (strlen(($where) > 0)) {
@@ -419,51 +444,6 @@ function ExecSQL($link, $sql)
 		die('Error: ' . mysqli_error($link));
 	}
 	return $result;
-}
-
-// https://stackoverflow.com/questions/24363755/mysqli-bind-results-to-an-array
-function db_query($dbconn, $sql, $params_types, $params)
-{ // pack dynamic number of remaining arguments into array
-	// GET QUERY TYPE
-	$query_type = strtoupper(substr(trim($sql), 0, 4));
-	//echo $sql;
-
-	$stmt = mysqli_stmt_init($dbconn);
-	if (mysqli_stmt_prepare($stmt, $sql)) {
-		if ($params_types != "") {
-			mysqli_stmt_bind_param($stmt, $params_types, ...$params); // unpack
-		}
-		mysqli_stmt_execute($stmt);
-
-		if ('SELE' == $query_type || '(SEL' == $query_type) {
-			$result = mysqli_stmt_result_metadata($stmt);
-			list($columns, $columns_vars) = array(array(), array());
-			while ($field = mysqli_fetch_field($result)) {
-				$columns[] = $field->name;
-				$columns_vars[] = &${$field->name};
-			}
-			call_user_func_array('mysqli_stmt_bind_result', array_merge(array($stmt), $columns_vars));
-			$returnarray = array();
-			while (mysqli_stmt_fetch($stmt)) {
-				$row = array();
-				foreach ($columns as $col) {
-					$row[$col] = ${$col};
-				}
-				$returnarray[] = $row;
-			}
-
-			return $returnarray;
-		} // end query_type SELECT
-		else if ('INSE' == $query_type) {
-			return mysqli_insert_id($dbconn);
-		}
-		return 1;
-	}
-}
-
-function PrepareExecSQL($link, $sql, $pars = '', $params = [])
-{
-	return db_query($link, $sql, $pars, $params);
 }
 
 // Get tablename from config if defined
@@ -605,13 +585,22 @@ function getSearchValues($config, $mysqli, $info)
 	$pars = '';
 	$params = [];
 
+	if (!array_key_exists("field", $input)) {
+		$input["field"] = [];
+	}
+	if (!array_key_exists("op", $input)) {
+		$input["op"] = [];
+	}
+	if (!array_key_exists("value", $input)) {
+		$input["value"] = [];
+	}
+
 	if (isset($input)) {
 
 		// Extract each set of values into arrays
 		$colarr = $input["field"];
 		$oparr = $input["op"];
-		$valarr =$input["value"];
-
+		$valarr = $input["value"];
 
 		// Build the fields
 		for ($i = 0; $i < count($colarr); $i++) {
@@ -622,7 +611,7 @@ function getSearchValues($config, $mysqli, $info)
 					$pars .= 's';
 					array_push($params, $valarr[$i][$j]);
 				}
-				$where .= (strlen($where) > 0 ? ' and ' : '') . '`' . trim($colarr[$i]) . '`' . trim($oparr[$i])  . ' (' . $whereps . ')';
+				$where .= (strlen($where) > 0 ? ' and ' : '') . '`' . trim($colarr[$i]) . '`' . trim($oparr[$i]) . ' (' . $whereps . ')';
 			} else {
 				$where .= (strlen($where) > 0 ? ' and ' : '') . '`' . trim($colarr[$i]) . '`' . trim($oparr[$i]) . '?';
 				$pars .= 's';
@@ -632,7 +621,7 @@ function getSearchValues($config, $mysqli, $info)
 
 		if ($where == '') { // If no where clause then error
 			http_response_code(304);
-			die();
+			die("no search fields");
 		}
 	}
 

@@ -73,7 +73,8 @@ $config = Array(
 					"afterselect" => "functionName", <=== Creates a trigger that is called after any select passing the results, returns a modified results object 
 					"update" => Array("fullname"),
 					"delete" => false, <=== Prevent API from deleting
-					"create" => false  <=== Prevent API from creating records
+					"create" => false  <=== Prevent API from creating records,
+					"order" => "fullname asc", <=== Allows setting a default order for GET
 					"subkeys" => Array( <== sub takes eg /company/23/employees [Read Only]
 						"property" => Array( <== sub name for url
 							"key" => "user_id", <== key value in child table
@@ -150,11 +151,13 @@ use beforeSelect option to set multitenancy parameters
 function beforeSelect($config, $info)
 {
 	global$defaultwhere, $defaultparams, $defaultsss;
-	$defaultwhere = "1=?";
-	$defaultsss = "s";
-	$defaultparams = ["1"];
 	// set the default where clause values
 	// Allows for support Tenancy queries etc
+	$info["where"] = "firstname=?";
+	$info["sss"] = "s";
+	$info["params"] = ["William"];
+	$info["order"] = "fullname desc"; // Allows changing order by
+	
 	return $config;
 }
 ```
